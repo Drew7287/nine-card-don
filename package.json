@@ -1,0 +1,15 @@
+{
+  "name": "nine-card-don",
+  "version": "1.0.0",
+  "description": "Nine-Card Don (Welsh Don) multiplayer card game",
+  "type": "module",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3"
+  }
+}

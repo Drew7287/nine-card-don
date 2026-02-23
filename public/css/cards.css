@@ -1,0 +1,333 @@
+/* cards.css — Realistic card rendering, card room theme */
+
+/* === Card base === */
+.card {
+  width: 56px;
+  height: 78px;
+  background: linear-gradient(145deg, #fff 0%, #f8f4e8 100%);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  cursor: default;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.1);
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Corner layout */
+.card-corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  gap: 0px;
+}
+
+.card-corner-top {
+  top: 3px;
+  left: 4px;
+}
+
+.card-corner-bottom {
+  bottom: 3px;
+  right: 4px;
+  transform: rotate(180deg);
+}
+
+.card-corner-rank {
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.card-corner-suit {
+  font-size: 0.55rem;
+  line-height: 1;
+}
+
+/* Large center pip */
+.card-center-pip {
+  font-size: 1.6rem;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+/* Card back — gold border, diagonal stripe pattern */
+.card-back {
+  width: 32px;
+  height: 44px;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      #2c3e50,
+      #2c3e50 4px,
+      #34495e 4px,
+      #34495e 8px
+    );
+  border: 2.5px solid var(--gold, #c9a84c);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 0 0 2px rgba(0,0,0,0.15);
+}
+
+/* Inner frame on card back */
+.card-back::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(201,168,76,0.4);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* === Playable cards === */
+.card.playable {
+  cursor: pointer;
+}
+
+@keyframes cardGlow {
+  0%, 100% { box-shadow: 0 0 4px 1px rgba(201,168,76,0.4), 0 0 0 2px var(--gold, #c9a84c); }
+  50%      { box-shadow: 0 0 10px 3px rgba(201,168,76,0.6), 0 0 0 2px var(--gold, #c9a84c); }
+}
+
+.card.playable {
+  animation: cardGlow 2s ease-in-out infinite;
+}
+
+.card.playable:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 6px 16px rgba(201,168,76,0.5), 0 0 0 2px var(--gold, #c9a84c);
+  animation: none;
+}
+
+/* Dimmed (not playable) */
+.card.dimmed {
+  opacity: 0.45;
+}
+
+/* Small cards (opponent visible — not used now, kept for future) */
+.card-small {
+  width: 36px;
+  height: 52px;
+}
+
+.card-small .card-corner-rank { font-size: 0.5rem; }
+.card-small .card-corner-suit { font-size: 0.4rem; }
+.card-small .card-center-pip { font-size: 1rem; }
+
+/* Card in trick area */
+.trick-card .card {
+  width: 52px;
+  height: 72px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.trick-card .card .card-center-pip {
+  font-size: 1.4rem;
+}
+
+/* === ANIMATIONS === */
+
+/* Deal animation — cards fly in from above */
+@keyframes cardDeal {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(4px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.card-dealing {
+  animation: cardDeal 0.4s ease-out both;
+}
+
+/* Fly-in animations for trick cards */
+@keyframes flyFromTop {
+  from { opacity: 0; transform: translateX(-50%) translateY(-60px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes flyFromBottom {
+  from { opacity: 0; transform: translateX(-50%) translateY(60px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes flyFromLeft {
+  from { opacity: 0; transform: translateY(-50%) translateX(-60px); }
+  to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+@keyframes flyFromRight {
+  from { opacity: 0; transform: translateY(-50%) translateX(60px); }
+  to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
+.fly-from-top    { animation: flyFromTop 0.3s ease-out; }
+.fly-from-bottom { animation: flyFromBottom 0.3s ease-out; }
+.fly-from-left   { animation: flyFromLeft 0.3s ease-out; }
+.fly-from-right  { animation: flyFromRight 0.3s ease-out; }
+
+/* Sweep animations — trick cards fly toward winner */
+@keyframes sweepToTop {
+  to { opacity: 0; transform: translateY(-50px) scale(0.7); }
+}
+@keyframes sweepToBottom {
+  to { opacity: 0; transform: translateY(50px) scale(0.7); }
+}
+@keyframes sweepToLeft {
+  to { opacity: 0; transform: translateX(-50px) scale(0.7); }
+}
+@keyframes sweepToRight {
+  to { opacity: 0; transform: translateX(50px) scale(0.7); }
+}
+
+.sweep-to-top    { animation: sweepToTop 0.6s ease-in forwards; }
+.sweep-to-bottom { animation: sweepToBottom 0.6s ease-in forwards; }
+.sweep-to-left   { animation: sweepToLeft 0.6s ease-in forwards; }
+.sweep-to-right  { animation: sweepToRight 0.6s ease-in forwards; }
+
+/* Card entrance in trick (basic) */
+@keyframes cardPlay {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.trick-card .card {
+  animation: cardPlay 0.2s ease-out;
+}
+
+/* Active state for touch — instant feedback */
+.card.playable:active {
+  transform: translateY(-4px) scale(0.95);
+  box-shadow: 0 2px 8px rgba(201,168,76,0.6), 0 0 0 2px var(--gold, #c9a84c);
+  animation: none;
+}
+
+/* === RESPONSIVE === */
+
+/* Tablet (<768px) */
+@media (max-width: 768px) {
+  .card {
+    width: 46px;
+    height: 64px;
+  }
+
+  .card-corner-rank { font-size: 0.6rem; }
+  .card-corner-suit { font-size: 0.45rem; }
+  .card-center-pip { font-size: 1.3rem; }
+
+  .card-small {
+    width: 28px;
+    height: 40px;
+  }
+
+  .card-small .card-corner-rank { font-size: 0.45rem; }
+  .card-small .card-corner-suit { font-size: 0.35rem; }
+  .card-small .card-center-pip { font-size: 0.7rem; }
+
+  .card-back {
+    width: 26px;
+    height: 36px;
+  }
+
+  .trick-card .card {
+    width: 44px;
+    height: 62px;
+  }
+
+  .trick-card .card .card-center-pip { font-size: 1.2rem; }
+}
+
+/* Phone (<520px) */
+@media (max-width: 520px) {
+  .card {
+    width: 40px;
+    height: 58px;
+    border-radius: 5px;
+  }
+
+  .card-corner-top { top: 2px; left: 3px; }
+  .card-corner-bottom { bottom: 2px; right: 3px; }
+  .card-corner-rank { font-size: 0.55rem; }
+  .card-corner-suit { font-size: 0.4rem; }
+  .card-center-pip { font-size: 1.1rem; }
+
+  .card.playable:hover {
+    /* Disable hover lift on touch — use :active instead */
+    transform: none;
+    box-shadow: none;
+    animation: cardGlow 2s ease-in-out infinite;
+  }
+
+  .card.playable:active {
+    transform: translateY(-4px) scale(0.95);
+    animation: none;
+  }
+
+  .card-small {
+    width: 24px;
+    height: 36px;
+  }
+
+  .card-small .card-corner-rank { font-size: 0.4rem; }
+  .card-small .card-corner-suit { font-size: 0.3rem; }
+  .card-small .card-center-pip { font-size: 0.6rem; }
+
+  .card-back {
+    width: 22px;
+    height: 30px;
+  }
+
+  .trick-card .card {
+    width: 38px;
+    height: 54px;
+  }
+
+  .trick-card .card .card-center-pip { font-size: 1rem; }
+}
+
+/* Very small phone (<380px) */
+@media (max-width: 380px) {
+  .card {
+    width: 34px;
+    height: 50px;
+  }
+
+  .card-corner-top { top: 1px; left: 2px; }
+  .card-corner-bottom { bottom: 1px; right: 2px; }
+  .card-corner-rank { font-size: 0.5rem; }
+  .card-corner-suit { font-size: 0.35rem; }
+  .card-center-pip { font-size: 0.9rem; }
+
+  .trick-card .card {
+    width: 32px;
+    height: 46px;
+  }
+
+  .trick-card .card .card-center-pip { font-size: 0.8rem; }
+}
+
+/* Landscape phone — compact cards */
+@media (max-height: 500px) and (orientation: landscape) {
+  .card {
+    width: 38px;
+    height: 54px;
+  }
+
+  .card-corner-rank { font-size: 0.55rem; }
+  .card-corner-suit { font-size: 0.4rem; }
+  .card-center-pip { font-size: 1rem; }
+
+  .trick-card .card {
+    width: 36px;
+    height: 50px;
+  }
+}

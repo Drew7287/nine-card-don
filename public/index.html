@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nine-Card Don</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/cards.css">
+</head>
+<body>
+  <!-- LOBBY SCREEN -->
+  <div id="lobby-screen" class="screen active">
+    <div class="lobby-container">
+      <h1>Nine-Card Don</h1>
+      <p class="subtitle">Welsh Don — Trick-Taking Card Game</p>
+
+      <div class="form-group">
+        <label for="player-name">Your Name</label>
+        <input type="text" id="player-name" maxlength="16" placeholder="Enter your name" autocomplete="off">
+      </div>
+
+      <div class="lobby-actions">
+        <button id="create-btn" class="btn btn-primary">Create Room</button>
+        <div class="divider">or</div>
+        <div class="join-group">
+          <input type="text" id="room-code" maxlength="4" placeholder="CODE" class="code-input" autocomplete="off">
+          <button id="join-btn" class="btn btn-secondary">Join Room</button>
+        </div>
+      </div>
+
+      <div id="lobby-error" class="error-msg" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ROOM SCREEN -->
+  <div id="room-screen" class="screen">
+    <div class="room-container">
+      <h2>Room: <span id="room-code-display"></span></h2>
+      <p id="partnerships" class="partnerships"></p>
+
+      <div id="seats" class="seats-grid"></div>
+
+      <button id="start-btn" class="btn btn-primary" disabled>Start Game</button>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game-screen" class="screen">
+    <div class="game-layout">
+      <!-- Top info bar -->
+      <div class="info-bar">
+        <div class="info-bar-group">
+          <span id="team-ns-label" class="team-label team-ns">Team 1</span>
+          <span id="score-ns" class="score-value">0</span>
+          <div class="progress-bar"><div id="progress-ns" class="progress-fill progress-ns"></div></div>
+        </div>
+        <div class="info-bar-group">
+          <span class="info-label">Trump</span>
+          <span id="trump-display" class="trump-value">?</span>
+        </div>
+        <div class="info-bar-group">
+          <span class="info-label">Pitcher</span>
+          <span id="pitcher-display">—</span>
+        </div>
+        <div class="info-bar-group" id="trick-count">
+          Trick 1 / 9
+        </div>
+        <div class="info-bar-group">
+          <span class="info-label">Tricks</span>
+          <span class="team-ns"><span id="tricks-ns">0</span></span>
+          <span class="info-sep">-</span>
+          <span class="team-ew"><span id="tricks-ew">0</span></span>
+        </div>
+        <div class="info-bar-group">
+          <span class="info-label">Hand</span>
+          <span class="team-ns"><span id="hand-pts-ns" class="hand-pts">0</span></span>
+          <span class="info-sep">-</span>
+          <span class="team-ew"><span id="hand-pts-ew" class="hand-pts">0</span></span>
+        </div>
+        <div class="info-bar-group">
+          <span id="team-ew-label" class="team-label team-ew">Team 2</span>
+          <span id="score-ew" class="score-value">0</span>
+          <div class="progress-bar"><div id="progress-ew" class="progress-fill progress-ew"></div></div>
+        </div>
+      </div>
+
+      <!-- Table area — the green felt -->
+      <div class="table-area">
+        <!-- Player positions around the table edge -->
+        <div id="player-top" class="player-area pos-top">
+          <div class="player-name"></div>
+          <div class="player-cards"></div>
+        </div>
+
+        <div id="player-left" class="player-area pos-left">
+          <div class="player-name"></div>
+          <div class="player-cards"></div>
+        </div>
+
+        <div id="player-right" class="player-area pos-right">
+          <div class="player-name"></div>
+          <div class="player-cards"></div>
+        </div>
+
+        <!-- Trick area (center of table) -->
+        <div id="trick-area" class="trick-area">
+          <div class="trick-card trick-top"></div>
+          <div class="trick-card trick-left"></div>
+          <div class="trick-card trick-right"></div>
+          <div class="trick-card trick-bottom"></div>
+        </div>
+
+        <!-- Turn indicator -->
+        <div id="turn-indicator" class="turn-indicator"></div>
+      </div>
+
+      <!-- My hand (bottom) -->
+      <div class="my-area">
+        <div id="my-seat-label" class="my-seat-label"></div>
+        <div id="my-hand" class="my-hand"></div>
+      </div>
+
+      <!-- Game message toast -->
+      <div id="game-message" class="game-message"></div>
+
+      <!-- Cut ceremony overlay -->
+      <div id="cut-overlay" class="cut-overlay">
+        <h2>Cut for Pitch</h2>
+        <div class="cut-cards">
+          <div class="cut-card-slot">
+            <div id="cut-label-ns" class="cut-team-label team-ns">Team 1</div>
+            <div id="cut-card-ns" class="cut-card"></div>
+          </div>
+          <div class="cut-vs">vs</div>
+          <div class="cut-card-slot">
+            <div id="cut-label-ew" class="cut-team-label team-ew">Team 2</div>
+            <div id="cut-card-ew" class="cut-card"></div>
+          </div>
+        </div>
+        <div id="cut-result" class="cut-result"></div>
+        <div id="cut-choose-area" class="cut-choose-area"></div>
+      </div>
+
+      <!-- Hand summary overlay -->
+      <div id="hand-summary" class="hand-summary"></div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="js/app.mjs"></script>
+</body>
+</html>

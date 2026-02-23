@@ -1,0 +1,20 @@
+// app.mjs — Client entry, screen management
+
+import { initLobby } from './lobby-ui.mjs';
+import { initGameUI } from './game-ui.mjs';
+
+const screens = ['lobby', 'room', 'game'];
+
+export function showScreen(name) {
+  for (const s of screens) {
+    const el = document.getElementById(`${s}-screen`);
+    if (el) el.classList.toggle('active', s === name);
+  }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  showScreen('lobby');
+  initLobby();
+  initGameUI();
+});
