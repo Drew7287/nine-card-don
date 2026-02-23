@@ -58,6 +58,16 @@
   opacity: 0.85;
 }
 
+/* Black suits on card faces — override the light JS color back to dark */
+.card.suit-clubs .card-corner-top,
+.card.suit-clubs .card-corner-bottom,
+.card.suit-clubs .card-center-pip,
+.card.suit-spades .card-corner-top,
+.card.suit-spades .card-corner-bottom,
+.card.suit-spades .card-center-pip {
+  color: #1a1a1a !important;
+}
+
 /* Card back — tarnished brass border, diagonal stripe pattern */
 .card-back {
   width: 46px;

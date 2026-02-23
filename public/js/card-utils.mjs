@@ -10,8 +10,8 @@ export const SUIT_SYMBOLS = {
 export const SUIT_COLORS = {
   hearts: '#c0392b',
   diamonds: '#c0392b',
-  clubs: '#1a1a1a',
-  spades: '#1a1a1a',
+  clubs: '#d4cdb8',
+  spades: '#d4cdb8',
 };
 
 export const SUIT_SHORT = {
