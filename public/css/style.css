@@ -7,21 +7,22 @@
 }
 
 :root {
-  --bg: #1a1a1a;
-  --bg-light: #252525;
-  --felt: #2a7a3a;
-  --felt-dark: #1d5a28;
-  --felt-edge: #1a4a22;
-  --wood: #5c3a1e;
-  --wood-light: #8b6914;
-  --wood-dark: #3d2410;
-  --surface: #2a4a2a;
-  --accent: #c9a84c;
-  --accent-hover: #dabe6a;
-  --text: #f0e6d0;
-  --text-dim: #a0946e;
+  --bg: #141010;
+  --bg-light: #1e1814;
+  --felt: #1e5c2a;
+  --felt-dark: #164a1f;
+  --felt-edge: #0f3518;
+  --wood: #4a2a12;
+  --wood-light: #6b4420;
+  --wood-dark: #2e1a0a;
+  --wood-grain: #3a2010;
+  --surface: #1e3a1e;
+  --accent: #a88a3c;
+  --accent-hover: #c4a452;
+  --text: #e8dcc4;
+  --text-dim: #8a7e60;
   --green: #4caf50;
-  --gold: #c9a84c;
+  --gold: #a88a3c;
   --ns-color: #5dade2;
   --ew-color: #e8985a;
   --danger: #c0392b;
@@ -35,6 +36,19 @@ html, body {
   overflow: hidden;
 }
 
+/* Wood grain texture mixin — used on rail border */
+.wood-grain {
+  background:
+    repeating-linear-gradient(
+      92deg,
+      transparent,
+      rgba(0,0,0,0.06) 2px,
+      transparent 4px,
+      rgba(0,0,0,0.03) 8px
+    ),
+    linear-gradient(180deg, var(--wood) 0%, var(--wood-dark) 100%);
+}
+
 /* Screens */
 .screen {
   display: none;
@@ -46,7 +60,7 @@ html, body {
 
 /* --- LOBBY --- */
 #lobby-screen {
-  background: radial-gradient(ellipse at center, #2a5a2a 0%, var(--bg) 100%);
+  background: radial-gradient(ellipse at center, #1a3a1a 0%, var(--bg) 100%);
 }
 
 .lobby-container {
@@ -309,7 +323,7 @@ input[type="text"]:focus {
 
 /* --- ROOM --- */
 #room-screen {
-  background: radial-gradient(ellipse at center, #2a5a2a 0%, var(--bg) 100%);
+  background: radial-gradient(ellipse at center, #1a3a1a 0%, var(--bg) 100%);
 }
 
 .room-container {
@@ -437,7 +451,7 @@ input[type="text"]:focus {
     "infobar"
     "table"
     "hand";
-  background: var(--bg);
+  background: radial-gradient(ellipse at center, #1a1410 0%, var(--bg) 100%);
 }
 
 /* --- Top info bar --- */
@@ -448,8 +462,8 @@ input[type="text"]:focus {
   justify-content: center;
   gap: 1.2rem;
   padding: 0.35rem 1rem;
-  background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
-  border-bottom: 1px solid #333;
+  background: linear-gradient(180deg, #1e1814, #141010);
+  border-bottom: 2px solid var(--wood-dark);
   flex-wrap: wrap;
   min-height: 36px;
 }
@@ -557,7 +571,7 @@ input[type="text"]:focus {
   color: var(--gold);
 }
 
-/* --- Table area — the green felt ellipse --- */
+/* --- Table area — the old pub table --- */
 .table-area {
   grid-area: table;
   position: relative;
@@ -568,33 +582,51 @@ input[type="text"]:focus {
   overflow: hidden;
 }
 
-/* The felt ellipse */
+/* The felt ellipse — worn baize with thick wood rail */
 .table-area::before {
   content: '';
   position: absolute;
-  top: 6%;
-  left: 4%;
-  right: 4%;
-  bottom: 6%;
-  background: radial-gradient(ellipse at center, #35923f 0%, var(--felt) 40%, var(--felt-dark) 75%, var(--felt-edge) 100%);
+  top: 4%;
+  left: 3%;
+  right: 3%;
+  bottom: 4%;
+  /* Worn baize — darker, more muted, slightly uneven */
+  background:
+    radial-gradient(ellipse at 40% 35%, rgba(40,100,50,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at center, #2a6e34 0%, var(--felt) 35%, var(--felt-dark) 65%, var(--felt-edge) 100%);
   border-radius: 50%;
-  border: 10px solid var(--wood);
+  /* Thick wood rail */
+  border: 14px solid var(--wood);
   box-shadow:
-    inset 0 0 40px rgba(0,0,0,0.25),
-    0 0 0 3px var(--wood-light),
-    0 4px 20px rgba(0,0,0,0.6);
+    /* Inner shadow — depth into the table */
+    inset 0 0 60px rgba(0,0,0,0.35),
+    inset 0 0 120px rgba(0,0,0,0.15),
+    /* Outer rail detail — multiple wood-toned rings */
+    0 0 0 2px var(--wood-light),
+    0 0 0 5px var(--wood-dark),
+    0 0 0 7px var(--wood-grain),
+    0 0 0 8px rgba(0,0,0,0.5),
+    /* Table shadow on the floor */
+    0 8px 40px rgba(0,0,0,0.7);
 }
 
-/* Subtle felt texture */
+/* Worn felt texture + warm amber lamp glow */
 .table-area::after {
   content: '';
   position: absolute;
-  top: 6%;
-  left: 4%;
-  right: 4%;
-  bottom: 6%;
+  top: 4%;
+  left: 3%;
+  right: 3%;
+  bottom: 4%;
   border-radius: 50%;
-  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3C/g%3E%3C/svg%3E");
+  background:
+    /* Warm overhead lamp glow — amber light hitting center of table */
+    radial-gradient(ellipse at 50% 40%, rgba(180,140,60,0.08) 0%, transparent 55%),
+    /* Worn patches — subtle lighter spots like years of use */
+    radial-gradient(ellipse at 35% 55%, rgba(255,255,255,0.02) 0%, transparent 25%),
+    radial-gradient(ellipse at 65% 45%, rgba(255,255,255,0.015) 0%, transparent 20%),
+    /* Felt grain texture */
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000000' fill-opacity='0.05'%3E%3Ccircle cx='10' cy='10' r='0.8'/%3E%3Ccircle cx='30' cy='25' r='0.6'/%3E%3Ccircle cx='50' cy='15' r='0.7'/%3E%3Ccircle cx='20' cy='45' r='0.5'/%3E%3Ccircle cx='45' cy='50' r='0.8'/%3E%3C/g%3E%3C/svg%3E");
   pointer-events: none;
 }
 
@@ -631,7 +663,7 @@ input[type="text"]:focus {
 }
 
 .player-area .player-cards .card {
-  margin-left: -14px;
+  margin-left: -20px;
 }
 
 .player-area .player-cards .card:first-child {
@@ -662,8 +694,8 @@ input[type="text"]:focus {
 /* --- Trick area (center of table) --- */
 .trick-area {
   position: relative;
-  width: 220px;
-  height: 140px;
+  width: 300px;
+  height: 200px;
   z-index: 2;
 }
 
@@ -708,9 +740,9 @@ input[type="text"]:focus {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.4rem 0.5rem;
-  background: linear-gradient(180deg, #252525, #1a1a1a);
-  border-top: 1px solid #333;
+  padding: 0.5rem 0.5rem;
+  background: linear-gradient(180deg, #1e1814, #141010);
+  border-top: 2px solid var(--wood-dark);
 }
 
 .my-seat-label {
@@ -726,7 +758,7 @@ input[type="text"]:focus {
 }
 
 .my-hand .card {
-  margin-left: -6px;
+  margin-left: -10px;
 }
 
 .my-hand .card:first-child {
@@ -1010,7 +1042,7 @@ input[type="text"]:focus {
   }
 
   .my-hand .card {
-    margin-left: -6px;
+    margin-left: -8px;
   }
 
   .my-area {
@@ -1031,8 +1063,12 @@ input[type="text"]:focus {
   .pos-right { right: 1%; }
 
   .trick-area {
-    width: 180px;
-    height: 120px;
+    width: 240px;
+    height: 160px;
+  }
+
+  .player-area .player-cards .card {
+    margin-left: -16px;
   }
 }
 
@@ -1098,8 +1134,8 @@ input[type="text"]:focus {
   }
 
   .trick-area {
-    width: 150px;
-    height: 100px;
+    width: 190px;
+    height: 130px;
   }
 
   .player-area .player-name {
@@ -1108,7 +1144,7 @@ input[type="text"]:focus {
   }
 
   .player-area .player-cards .card {
-    margin-left: -12px;
+    margin-left: -14px;
   }
 
   .turn-indicator {
@@ -1122,7 +1158,7 @@ input[type="text"]:focus {
   }
 
   .my-hand .card {
-    margin-left: -6px;
+    margin-left: -8px;
   }
 
   .my-area {
@@ -1170,14 +1206,14 @@ input[type="text"]:focus {
     left: 1%;
     right: 1%;
     bottom: 3%;
-    border-width: 6px;
+    border-width: 8px;
   }
 
   .table-area::before {
     box-shadow:
-      inset 0 0 30px rgba(0,0,0,0.25),
-      0 0 0 2px var(--wood-light),
-      0 3px 12px rgba(0,0,0,0.5);
+      inset 0 0 40px rgba(0,0,0,0.3),
+      0 0 0 2px var(--wood-dark),
+      0 4px 16px rgba(0,0,0,0.6);
   }
 }
 
@@ -1186,8 +1222,8 @@ input[type="text"]:focus {
   .lobby-container h1 { font-size: 1.5rem; }
 
   .trick-area {
-    width: 120px;
-    height: 80px;
+    width: 150px;
+    height: 100px;
   }
 
   .hand-scores {
@@ -1217,7 +1253,7 @@ input[type="text"]:focus {
   }
 
   .trick-area {
-    width: 180px;
-    height: 100px;
+    width: 220px;
+    height: 130px;
   }
 }
