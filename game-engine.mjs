@@ -167,8 +167,12 @@ export function playCard(state, seat, card) {
     trickResult = resolveTrick(state);
     state.trickNumber++;
 
+    // Game won mid-hand (team pegged 121 during trick scoring)
+    if (state.gameOver) {
+      handResult = buildEarlyWinResult(state);
+    }
     // Check if hand is complete (9 tricks)
-    if (state.trickNumber === 9) {
+    else if (state.trickNumber === 9) {
       handResult = resolveHand(state);
     }
   } else {
@@ -227,6 +231,13 @@ function resolveTrick(state) {
   const trickScore = scoreTrickCards(trickCards, state.trumpSuit);
   state.scores[winnerTeam] += trickScore.points;
   state.handPoints[winnerTeam] += trickScore.points;
+
+  // Check for immediate win at 121 (game ends the instant a team pegs out)
+  if (state.scores[winnerTeam] >= WIN_SCORE) {
+    state.gameOver = true;
+    state.handComplete = true;
+    state.winner = winnerTeam;
+  }
 
   // Record trick in history
   state.trickHistory.push({
@@ -342,6 +353,23 @@ function resolveHand(state) {
     gameBonusWinner,
     scores: { ...state.scores },
     gameOver: state.gameOver,
+    winner: state.winner,
+  };
+}
+
+/**
+ * Build a hand result when a team wins mid-hand by hitting 121.
+ * No game bonus is awarded — game ends immediately on peg-out.
+ */
+function buildEarlyWinResult(state) {
+  return {
+    handPoints: { ...state.handPoints },
+    trickHistory: state.trickHistory,
+    gameCount: { NS: 0, EW: 0 },
+    gameBonus: { NS: 0, EW: 0 },
+    gameBonusWinner: null,
+    scores: { ...state.scores },
+    gameOver: true,
     winner: state.winner,
   };
 }
