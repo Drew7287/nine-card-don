@@ -4,7 +4,7 @@ import {
   createRoom, joinRoom, sitDown, startGame, restartGame, choosePitcher,
   playCardInRoom, readyNextHand, handleDisconnect,
   getRoomState, getPersonalGameState, getRoom, getPlayerNames,
-  addAiToSeat, removeAiFromSeat
+  addAiToSeat, removeAiFromSeat, aiTakeoverSeat
 } from './room-manager.mjs';
 import { triggerAiTurn, triggerAiPitcherChoice, triggerAiReadyNextHand, isAiSeat } from './ai-controller.mjs';
 import { AI_NAMES } from './ai-player.mjs';
@@ -35,10 +35,14 @@ export function registerHandlers(io, socket) {
 
     io.to(result.room.code).emit('room-state', getRoomState(result.room));
 
-    // If rejoining a game in progress, send game state
+    // If rejoining a game in progress, send game state and notify others
     if (result.rejoined && result.room.started) {
       const gameView = getPersonalGameState(result.room, socket.id);
       if (gameView) socket.emit('game-state', gameView);
+      io.to(result.room.code).emit('player-reconnected', {
+        seat: result.seat,
+        name: playerName.trim(),
+      });
     }
   });
 
@@ -241,6 +245,37 @@ export function registerHandlers(io, socket) {
         seat: result.seat,
         name: result.name,
       });
+
+      // Start 30-second AI takeover timer for mid-game disconnects
+      if (result.room.started && result.seat) {
+        const room = result.room;
+        const seat = result.seat;
+        const name = result.name;
+        const disc = room.disconnected.get(seat);
+        if (disc) {
+          disc.takeoverTimeout = setTimeout(() => {
+            const took = aiTakeoverSeat(room, seat, name);
+            if (!took) return;
+
+            io.to(room.code).emit('room-state', getRoomState(room));
+            io.to(room.code).emit('ai-takeover', {
+              seat,
+              name,
+              aiName: room.aiPlayers[seat].name,
+            });
+
+            // Trigger appropriate AI action based on current game phase
+            if (room.gameState && !room.gameState.handComplete && !room.gameState.gameOver
+                && room.gameState.currentPlayer === seat) {
+              triggerAiTurn(io, room);
+            } else if (room.gameState && room.gameState.handComplete && !room.gameState.gameOver) {
+              triggerAiReadyNextHand(io, room);
+            } else if (room.phase === 'choosing' && room.cutResult?.chooser === seat) {
+              triggerAiPitcherChoice(io, room);
+            }
+          }, 30_000);
+        }
+      }
     }
   });
 }

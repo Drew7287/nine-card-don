@@ -41,15 +41,24 @@ export function joinRoom(code, socketId, playerName) {
   if (!room) return { error: 'Room not found' };
   if (room.players[socketId]) return { error: 'Already in room' };
 
-  // Check if this name was disconnected — allow rejoin
+  // Check if this name was disconnected — allow rejoin (case-insensitive)
   for (const [seat, disc] of room.disconnected.entries()) {
-    if (disc.name === playerName) {
+    if (disc.name.toLowerCase() === playerName.toLowerCase()) {
       clearTimeout(disc.timeout);
+      if (disc.takeoverTimeout) clearTimeout(disc.takeoverTimeout);
       room.disconnected.delete(seat);
+
+      // Reclaim from AI if it took over during absence
+      const wasAiTakeover = room.aiSeats.has(seat);
+      if (wasAiTakeover) {
+        room.aiSeats.delete(seat);
+        delete room.aiPlayers[seat];
+      }
+
       room.seats[seat] = socketId;
       room.players[socketId] = { name: playerName, seat };
       socketToRoom.set(socketId, { code: room.code, seat });
-      return { ok: true, room, seat, rejoined: true };
+      return { ok: true, room, seat, rejoined: true, wasAiTakeover };
     }
   }
 
@@ -270,16 +279,16 @@ export function handleDisconnect(socketId) {
     room.seats[seat] = null;
 
     if (room.started) {
-      // Mark as disconnected with 2-min rejoin window
+      // Mark as disconnected with 5-min rejoin window (AI takes over after 30s)
       const timeout = setTimeout(() => {
         room.disconnected.delete(seat);
         // If all humans gone and no one reconnecting, delete room
         if (Object.keys(room.players).length === 0 && room.disconnected.size === 0) {
           rooms.delete(room.code);
         }
-      }, 120_000);
+      }, 300_000);
 
-      room.disconnected.set(seat, { name, timeout });
+      room.disconnected.set(seat, { name, timeout, takeoverTimeout: null });
     }
   }
 
@@ -341,6 +350,20 @@ export function getPersonalGameState(room, socketId) {
   view.aiSeats = [...room.aiSeats];
 
   return view;
+}
+
+/**
+ * AI takes over a disconnected player's seat.
+ * Returns true if takeover succeeded, false if seat was already reclaimed or taken over.
+ */
+export function aiTakeoverSeat(room, seat, originalName) {
+  if (!room.disconnected.has(seat)) return false; // Already rejoined
+  if (room.aiSeats.has(seat)) return false; // Already taken over
+
+  room.seats[seat] = `ai-${seat}`;
+  room.aiSeats.add(seat);
+  room.aiPlayers[seat] = { name: `Bot (${originalName})` };
+  return true;
 }
 
 /**

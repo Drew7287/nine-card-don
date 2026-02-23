@@ -1,7 +1,7 @@
 // game-ui.mjs — Game table rendering
 
 import socket, { emitAsync } from './socket-client.mjs';
-import { getCurrentRoom, getMySeat } from './lobby-ui.mjs';
+import { getCurrentRoom, getMySeat, clearSession } from './lobby-ui.mjs';
 import { suitSymbol, suitColor, cardLabel, cardId, sortHand } from './card-utils.mjs';
 import { showScreen } from './app.mjs';
 
@@ -57,6 +57,14 @@ export function initGameUI() {
 
   socket.on('player-disconnected', ({ seat, name }) => {
     showGameMessage(`${name} disconnected`);
+  });
+
+  socket.on('player-reconnected', ({ seat, name }) => {
+    showGameMessage(`${name} reconnected`);
+  });
+
+  socket.on('ai-takeover', ({ seat, name, aiName }) => {
+    showGameMessage(`${aiName} is playing for ${name}`);
   });
 
   // --- Cut ceremony events ---
@@ -383,6 +391,7 @@ function renderHandComplete(result) {
   `;
 
   if (result.gameOver) {
+    clearSession();
     html += `<h2 class="game-winner">${result.winner === 'NS' ? nsTeam : ewTeam} wins the game!</h2>`;
     html += `<button id="new-game-btn" class="btn btn-primary">New Game</button>`;
   } else {

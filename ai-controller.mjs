@@ -32,9 +32,10 @@ export function triggerAiTurn(io, room) {
   setTimeout(() => {
     room.aiProcessing = false;
 
-    // Re-check state (may have changed during delay)
+    // Re-check state (may have changed during delay — human may have reclaimed seat)
     if (!room.gameState || room.gameState.handComplete || room.gameState.gameOver) return;
     if (room.gameState.currentPlayer !== currentSeat) return;
+    if (!isAiSeat(room, currentSeat)) return;
 
     const card = aiChooseCard(room.gameState, currentSeat);
     if (!card) return;

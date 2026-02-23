@@ -16,6 +16,25 @@ export function getMySeat() {
   return mySeat;
 }
 
+// --- Session persistence for auto-rejoin ---
+
+function saveSession(roomCode, playerName) {
+  try {
+    localStorage.setItem('don-session', JSON.stringify({ roomCode, playerName }));
+  } catch { /* localStorage unavailable */ }
+}
+
+function loadSession() {
+  try {
+    const data = localStorage.getItem('don-session');
+    return data ? JSON.parse(data) : null;
+  } catch { return null; }
+}
+
+export function clearSession() {
+  try { localStorage.removeItem('don-session'); } catch { /* noop */ }
+}
+
 export function initLobby() {
   const createBtn = document.getElementById('create-btn');
   const joinBtn = document.getElementById('join-btn');
@@ -23,6 +42,32 @@ export function initLobby() {
   const quickPlayBtn = document.getElementById('quick-play-btn');
   const startWithAiBtn = document.getElementById('start-with-ai-btn');
   const cancelQueueBtn = document.getElementById('cancel-queue-btn');
+
+  // Restore player name from previous session
+  const savedSession = loadSession();
+  if (savedSession?.playerName) {
+    document.getElementById('player-name').value = savedSession.playerName;
+  }
+
+  // Auto-rejoin on connect (handles page refresh + socket reconnection)
+  const attemptAutoRejoin = async () => {
+    const session = loadSession();
+    if (!session) return;
+    const res = await emitAsync('join-room', {
+      code: session.roomCode,
+      playerName: session.playerName,
+    });
+    if (res?.ok && res.rejoined) {
+      currentRoom = res.code;
+      mySeat = res.seat;
+      // game-state event from server will push us to game screen
+    } else {
+      clearSession();
+    }
+  };
+
+  if (socket.connected) attemptAutoRejoin();
+  socket.on('connect', attemptAutoRejoin);
 
   // Auto-uppercase room code input
   codeInput.addEventListener('input', () => {
@@ -55,6 +100,7 @@ export function initLobby() {
     const res = await emitAsync('create-room', { playerName: name });
     if (res.error) return showError(res.error);
     currentRoom = res.code;
+    saveSession(res.code, name);
     showScreen('room');
   });
 
@@ -66,6 +112,7 @@ export function initLobby() {
     const res = await emitAsync('join-room', { code, playerName: name });
     if (res.error) return showError(res.error);
     currentRoom = res.code;
+    saveSession(res.code, name);
     showScreen('room');
 
     if (res.rejoined && res.seat) {
@@ -95,6 +142,8 @@ export function initLobby() {
   socket.on('queue-matched', ({ code }) => {
     hideQueueOverlay();
     currentRoom = code;
+    const name = document.getElementById('player-name').value.trim();
+    if (name) saveSession(code, name);
     showScreen('game');
   });
 }
