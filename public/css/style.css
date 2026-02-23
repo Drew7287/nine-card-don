@@ -163,11 +163,31 @@ input[type="text"]:focus {
   border-color: var(--wood-light);
 }
 
+.lobby-paths {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.btn-large {
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  width: 100%;
+}
+
+.path-desc {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  margin-top: -0.3rem;
+}
+
 .lobby-actions {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   align-items: center;
+  width: 100%;
 }
 
 .join-group {
@@ -185,6 +205,106 @@ input[type="text"]:focus {
   color: var(--danger);
   margin-top: 1rem;
   font-size: 0.9rem;
+}
+
+/* --- Queue overlay --- */
+.queue-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(6px);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  text-align: center;
+  gap: 0.8rem;
+}
+
+.queue-overlay.visible {
+  display: flex;
+}
+
+.queue-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--text-dim);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.queue-text {
+  font-size: 1.2rem;
+  color: var(--text);
+}
+
+.queue-count {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.queue-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+/* --- AI seat styles --- */
+.ai-player {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ai-badge {
+  font-size: 0.9rem;
+}
+
+.ai-seat {
+  border-color: var(--gold) !important;
+}
+
+.add-ai-btn {
+  padding: 0.35rem 0.6rem;
+  background: rgba(201, 168, 76, 0.12);
+  color: var(--gold);
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.add-ai-btn:hover {
+  background: rgba(201, 168, 76, 0.25);
+  border-color: var(--gold);
+}
+
+.remove-ai-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0 0.25rem;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.remove-ai-btn:hover {
+  color: var(--danger);
+}
+
+.seat-actions {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
 }
 
 /* --- ROOM --- */

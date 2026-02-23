@@ -162,7 +162,8 @@ function renderOpponentAreas(state, positions) {
     const nameEl = area.querySelector('.player-name');
     const cardsEl = area.querySelector('.player-cards');
 
-    nameEl.textContent = playerName(seat);
+    const isAi = state.aiSeats?.includes(seat);
+    nameEl.textContent = (isAi ? '🤖 ' : '') + playerName(seat);
 
     cardsEl.innerHTML = '';
 

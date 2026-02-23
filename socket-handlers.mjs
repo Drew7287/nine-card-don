@@ -3,8 +3,12 @@
 import {
   createRoom, joinRoom, sitDown, startGame, restartGame, choosePitcher,
   playCardInRoom, readyNextHand, handleDisconnect,
-  getRoomState, getPersonalGameState, getRoom
+  getRoomState, getPersonalGameState, getRoom, getPlayerNames,
+  addAiToSeat, removeAiFromSeat
 } from './room-manager.mjs';
+import { triggerAiTurn, triggerAiPitcherChoice, triggerAiReadyNextHand, isAiSeat } from './ai-controller.mjs';
+import { AI_NAMES } from './ai-player.mjs';
+import { joinQueue, leaveQueue, startWithAi } from './matchmaking.mjs';
 
 export function registerHandlers(io, socket) {
 
@@ -46,20 +50,58 @@ export function registerHandlers(io, socket) {
     io.to(code).emit('room-state', getRoomState(result.room));
   });
 
+  // --- AI seat management ---
+
+  socket.on('add-ai', ({ code, seat }, ack) => {
+    const room = getRoom(code);
+    if (!room) return ack?.({ error: 'Room not found' });
+
+    const usedNames = new Set(Object.values(room.aiPlayers).map(p => p.name));
+    const name = AI_NAMES.find(n => !usedNames.has(n)) || `Bot ${seat}`;
+
+    const result = addAiToSeat(code, seat, name);
+    if (result.error) return ack?.({ error: result.error });
+
+    ack?.({ ok: true });
+    io.to(code).emit('room-state', getRoomState(result.room));
+  });
+
+  socket.on('remove-ai', ({ code, seat }, ack) => {
+    const result = removeAiFromSeat(code, seat);
+    if (result.error) return ack?.({ error: result.error });
+
+    ack?.({ ok: true });
+    io.to(code).emit('room-state', getRoomState(result.room));
+  });
+
+  // --- Quick Play ---
+
+  socket.on('quick-play', ({ playerName }, ack) => {
+    if (!playerName?.trim()) return ack?.({ error: 'Name required' });
+    joinQueue(socket.id, playerName.trim());
+    ack?.({ ok: true });
+  });
+
+  socket.on('cancel-quick-play', (_, ack) => {
+    leaveQueue(socket.id);
+    ack?.({ ok: true });
+  });
+
+  socket.on('start-with-ai', (_, ack) => {
+    startWithAi(socket.id, io);
+    ack?.({ ok: true });
+  });
+
+  // --- Game flow ---
+
   socket.on('start-game', ({ code }, ack) => {
     const result = startGame(code, socket.id);
     if (result.error) return ack?.({ error: result.error });
 
     ack?.({ ok: true });
 
-    // Build player names map for cut ceremony display
-    const playerNames = {};
-    for (const seat of ['N', 'E', 'S', 'W']) {
-      const sid = result.room.seats[seat];
-      if (sid && result.room.players[sid]) {
-        playerNames[seat] = result.room.players[sid].name;
-      }
-    }
+    // Build player names map (including AI)
+    const playerNames = getPlayerNames(result.room);
 
     // Emit cut ceremony to all clients
     io.to(code).emit('cut-ceremony', { ...result.cutResult, playerNames });
@@ -69,13 +111,17 @@ export function registerHandlers(io, socket) {
       const room = getRoom(code);
       if (!room || room.phase !== 'cutting') return;
       room.phase = 'choosing';
-      // Send personalized cut-choose to each player so chooser gets buttons
+      // Send personalized cut-choose to each human player
       for (const [socketId, player] of Object.entries(room.players)) {
         io.to(socketId).emit('cut-choose', {
           chooser: room.cutResult.chooser,
           winningTeam: room.cutResult.winningTeam,
           isChooser: player.seat === room.cutResult.chooser,
         });
+      }
+      // If chooser is AI, trigger AI pitcher choice
+      if (isAiSeat(room, room.cutResult.chooser)) {
+        triggerAiPitcherChoice(io, room);
       }
     }, 3000);
   });
@@ -93,6 +139,7 @@ export function registerHandlers(io, socket) {
     setTimeout(() => {
       io.to(code).emit('game-started');
       broadcastGameState(io, result.room);
+      triggerAiTurn(io, result.room);
     }, 1500);
   });
 
@@ -122,13 +169,19 @@ export function registerHandlers(io, socket) {
           setTimeout(() => {
             io.to(code).emit('hand-complete', result.handResult);
             broadcastGameState(io, room);
+            // AI auto-ready for next hand
+            if (!result.handResult.gameOver) {
+              triggerAiReadyNextHand(io, room);
+            }
           }, 500);
         } else {
           broadcastGameState(io, room);
+          triggerAiTurn(io, room);
         }
       }, 800);
     } else {
       broadcastGameState(io, room);
+      triggerAiTurn(io, room);
     }
   });
 
@@ -141,8 +194,11 @@ export function registerHandlers(io, socket) {
     if (result.newHand) {
       io.to(code).emit('new-hand');
       broadcastGameState(io, result.room);
+      triggerAiTurn(io, result.room);
     } else {
       io.to(code).emit('ready-count', { count: result.readyCount });
+      // After human readies, trigger AI to ready too
+      triggerAiReadyNextHand(io, result.room);
     }
   });
 
@@ -152,14 +208,8 @@ export function registerHandlers(io, socket) {
 
     ack?.({ ok: true });
 
-    // Build player names map for cut ceremony display
-    const playerNames = {};
-    for (const seat of ['N', 'E', 'S', 'W']) {
-      const sid = result.room.seats[seat];
-      if (sid && result.room.players[sid]) {
-        playerNames[seat] = result.room.players[sid].name;
-      }
-    }
+    // Build player names map (including AI)
+    const playerNames = getPlayerNames(result.room);
 
     // Fresh cut ceremony for new game
     io.to(code).emit('cut-ceremony', { ...result.cutResult, playerNames });
@@ -175,10 +225,15 @@ export function registerHandlers(io, socket) {
           isChooser: player.seat === room.cutResult.chooser,
         });
       }
+      // If chooser is AI, trigger AI pitcher choice
+      if (isAiSeat(room, room.cutResult.chooser)) {
+        triggerAiPitcherChoice(io, room);
+      }
     }, 3000);
   });
 
   socket.on('disconnect', () => {
+    leaveQueue(socket.id); // Remove from matchmaking queue if present
     const result = handleDisconnect(socket.id);
     if (result?.room) {
       io.to(result.room.code).emit('room-state', getRoomState(result.room));

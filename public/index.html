@@ -19,9 +19,13 @@
         <input type="text" id="player-name" maxlength="16" placeholder="Enter your name" autocomplete="off">
       </div>
 
-      <div class="lobby-actions">
-        <button id="create-btn" class="btn btn-primary">Create Room</button>
-        <div class="divider">or</div>
+      <div class="lobby-paths">
+        <button id="quick-play-btn" class="btn btn-primary btn-large">Quick Play</button>
+        <p class="path-desc">Find a game now — AI fills empty seats</p>
+
+        <div class="divider">— or —</div>
+
+        <button id="create-btn" class="btn btn-secondary">Create Private Room</button>
         <div class="join-group">
           <input type="text" id="room-code" maxlength="4" placeholder="CODE" class="code-input" autocomplete="off">
           <button id="join-btn" class="btn btn-secondary">Join Room</button>
@@ -29,6 +33,17 @@
       </div>
 
       <div id="lobby-error" class="error-msg" style="display:none"></div>
+    </div>
+
+    <!-- Queue overlay -->
+    <div id="queue-overlay" class="queue-overlay">
+      <div class="queue-spinner"></div>
+      <p class="queue-text">Finding players...</p>
+      <p id="queue-count" class="queue-count"></p>
+      <div class="queue-buttons">
+        <button id="start-with-ai-btn" class="btn btn-primary">Start with AI</button>
+        <button id="cancel-queue-btn" class="btn btn-secondary">Cancel</button>
+      </div>
     </div>
   </div>
 

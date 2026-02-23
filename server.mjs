@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { registerHandlers } from './socket-handlers.mjs';
+import { processQueue } from './matchmaking.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -19,6 +20,9 @@ io.on('connection', (socket) => {
     console.log(`disconnected: ${socket.id}`);
   });
 });
+
+// Process matchmaking queue every 2 seconds
+setInterval(() => processQueue(io), 2000);
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {

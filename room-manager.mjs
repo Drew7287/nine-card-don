@@ -1,4 +1,4 @@
-// room-manager.mjs — Room lifecycle, player join/leave
+// room-manager.mjs — Room lifecycle, player join/leave, AI seat management
 
 import { createGameState, newHand, personalView, playCard as enginePlayCard, performCut, getPartner, SEATS } from './game-engine.mjs';
 
@@ -21,6 +21,8 @@ export function createRoom(hostName) {
     code,
     seats: { N: null, E: null, S: null, W: null },
     players: {}, // socketId -> { name, seat }
+    aiSeats: new Set(),   // seats occupied by AI
+    aiPlayers: {},        // seat -> { name }
     gameState: null,
     started: false,
     readyForNext: new Set(), // seats ready for next hand
@@ -51,7 +53,10 @@ export function joinRoom(code, socketId, playerName) {
     }
   }
 
-  if (Object.keys(room.players).length >= 4 && !room.disconnected.size) {
+  // Count human players (exclude AI)
+  const humanCount = Object.keys(room.players).length;
+  const aiCount = room.aiSeats.size;
+  if (humanCount + aiCount >= 4 && !room.disconnected.size) {
     return { error: 'Room is full' };
   }
 
@@ -73,7 +78,11 @@ export function sitDown(code, socketId, seat) {
     room.seats[player.seat] = null;
   }
 
-  if (room.seats[seat] && room.seats[seat] !== socketId) {
+  // If AI is in this seat, remove it first
+  if (room.aiSeats.has(seat)) {
+    room.aiSeats.delete(seat);
+    delete room.aiPlayers[seat];
+  } else if (room.seats[seat] && room.seats[seat] !== socketId) {
     return { error: 'Seat taken' };
   }
 
@@ -83,11 +92,85 @@ export function sitDown(code, socketId, seat) {
   return { ok: true, room };
 }
 
+// --- AI seat management ---
+
+export function addAiToSeat(code, seat, aiName) {
+  const room = rooms.get(code);
+  if (!room) return { error: 'Room not found' };
+  if (!SEATS.includes(seat)) return { error: 'Invalid seat' };
+  if (room.started) return { error: 'Game already started' };
+  if (room.seats[seat] && !room.aiSeats.has(seat)) return { error: 'Seat taken' };
+
+  room.seats[seat] = `ai-${seat}`;
+  room.aiSeats.add(seat);
+  room.aiPlayers[seat] = { name: aiName };
+  return { ok: true, room };
+}
+
+export function removeAiFromSeat(code, seat) {
+  const room = rooms.get(code);
+  if (!room) return { error: 'Room not found' };
+  if (!room.aiSeats.has(seat)) return { error: 'No AI in that seat' };
+  if (room.started) return { error: 'Game already started' };
+
+  room.seats[seat] = null;
+  room.aiSeats.delete(seat);
+  delete room.aiPlayers[seat];
+  return { ok: true, room };
+}
+
+// --- BySeat functions (for AI — no socketId needed) ---
+
+export function playCardBySeat(code, seat, card) {
+  const room = rooms.get(code);
+  if (!room || !room.gameState) return { error: 'No active game' };
+
+  const result = enginePlayCard(room.gameState, seat, card);
+  return { ...result, room, seat };
+}
+
+export function choosePitcherBySeat(code, seat, choice) {
+  const room = rooms.get(code);
+  if (!room) return { error: 'Room not found' };
+  if (room.phase !== 'choosing') return { error: 'Not in choosing phase' };
+  if (seat !== room.cutResult.chooser) return { error: 'Not the chooser' };
+
+  let pitcherSeat;
+  if (choice === 'self') {
+    pitcherSeat = room.cutResult.chooser;
+  } else {
+    pitcherSeat = getPartner(room.cutResult.chooser);
+  }
+
+  room.phase = 'playing';
+  room.gameState = createGameState(pitcherSeat);
+  return { ok: true, room, pitcherSeat };
+}
+
+export function readyNextHandBySeat(code, seat) {
+  const room = rooms.get(code);
+  if (!room || !room.gameState) return { error: 'No active game' };
+  if (!room.gameState.handComplete) return { error: 'Hand not complete' };
+  if (room.gameState.gameOver) return { error: 'Game is over' };
+
+  room.readyForNext.add(seat);
+
+  if (room.readyForNext.size === 4) {
+    room.gameState = newHand(room.gameState);
+    room.readyForNext = new Set();
+    return { ok: true, newHand: true, room };
+  }
+
+  return { ok: true, newHand: false, readyCount: room.readyForNext.size, room };
+}
+
+// --- Existing functions (unchanged or lightly modified) ---
+
 export function startGame(code, socketId) {
   const room = rooms.get(code);
   if (!room) return { error: 'Room not found' };
 
-  // All 4 seats must be filled
+  // All 4 seats must be filled (human or AI)
   for (const seat of SEATS) {
     if (!room.seats[seat]) return { error: `Seat ${seat} is empty` };
   }
@@ -190,7 +273,7 @@ export function handleDisconnect(socketId) {
       // Mark as disconnected with 2-min rejoin window
       const timeout = setTimeout(() => {
         room.disconnected.delete(seat);
-        // If all players gone, delete room
+        // If all humans gone and no one reconnecting, delete room
         if (Object.keys(room.players).length === 0 && room.disconnected.size === 0) {
           rooms.delete(room.code);
         }
@@ -211,13 +294,17 @@ export function handleDisconnect(socketId) {
 export function getRoomState(room) {
   const seats = {};
   for (const seat of SEATS) {
-    const socketId = room.seats[seat];
-    if (socketId && room.players[socketId]) {
-      seats[seat] = { name: room.players[socketId].name, connected: true };
-    } else if (room.disconnected.has(seat)) {
-      seats[seat] = { name: room.disconnected.get(seat).name, connected: false };
+    if (room.aiSeats.has(seat)) {
+      seats[seat] = { name: room.aiPlayers[seat].name, connected: true, isAi: true };
     } else {
-      seats[seat] = null;
+      const socketId = room.seats[seat];
+      if (socketId && room.players[socketId]) {
+        seats[seat] = { name: room.players[socketId].name, connected: true };
+      } else if (room.disconnected.has(seat)) {
+        seats[seat] = { name: room.disconnected.get(seat).name, connected: false };
+      } else {
+        seats[seat] = null;
+      }
     }
   }
 
@@ -225,7 +312,7 @@ export function getRoomState(room) {
     code: room.code,
     seats,
     started: room.started,
-    playerCount: Object.keys(room.players).length,
+    playerCount: Object.keys(room.players).length + room.aiSeats.size,
   };
 }
 
@@ -235,16 +322,41 @@ export function getPersonalGameState(room, socketId) {
   if (!player || !player.seat) return null;
   const view = personalView(room.gameState, player.seat);
 
-  // Attach player names keyed by seat
+  // Attach player names keyed by seat (including AI)
   view.playerNames = {};
   for (const seat of SEATS) {
-    const sid = room.seats[seat];
-    if (sid && room.players[sid]) {
-      view.playerNames[seat] = room.players[sid].name;
-    } else if (room.disconnected.has(seat)) {
-      view.playerNames[seat] = room.disconnected.get(seat).name;
+    if (room.aiSeats.has(seat)) {
+      view.playerNames[seat] = room.aiPlayers[seat].name;
+    } else {
+      const sid = room.seats[seat];
+      if (sid && room.players[sid]) {
+        view.playerNames[seat] = room.players[sid].name;
+      } else if (room.disconnected.has(seat)) {
+        view.playerNames[seat] = room.disconnected.get(seat).name;
+      }
     }
   }
 
+  // Include AI seat list for UI indicators
+  view.aiSeats = [...room.aiSeats];
+
   return view;
+}
+
+/**
+ * Build player names map including AI (used for cut ceremony display).
+ */
+export function getPlayerNames(room) {
+  const playerNames = {};
+  for (const seat of SEATS) {
+    if (room.aiSeats.has(seat)) {
+      playerNames[seat] = room.aiPlayers[seat].name;
+    } else {
+      const sid = room.seats[seat];
+      if (sid && room.players[sid]) {
+        playerNames[seat] = room.players[sid].name;
+      }
+    }
+  }
+  return playerNames;
 }

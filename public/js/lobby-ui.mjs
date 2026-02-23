@@ -1,4 +1,4 @@
-// lobby-ui.mjs — Lobby/room screens
+// lobby-ui.mjs — Lobby/room screens + Quick Play + AI management
 
 import socket, { emitAsync } from './socket-client.mjs';
 import { showScreen } from './app.mjs';
@@ -20,12 +20,35 @@ export function initLobby() {
   const createBtn = document.getElementById('create-btn');
   const joinBtn = document.getElementById('join-btn');
   const codeInput = document.getElementById('room-code');
+  const quickPlayBtn = document.getElementById('quick-play-btn');
+  const startWithAiBtn = document.getElementById('start-with-ai-btn');
+  const cancelQueueBtn = document.getElementById('cancel-queue-btn');
 
   // Auto-uppercase room code input
   codeInput.addEventListener('input', () => {
     codeInput.value = codeInput.value.toUpperCase();
   });
 
+  // --- Quick Play ---
+  quickPlayBtn.addEventListener('click', async () => {
+    const name = document.getElementById('player-name').value.trim();
+    if (!name) return showError('Enter your name');
+    const res = await emitAsync('quick-play', { playerName: name });
+    if (res?.error) return showError(res.error);
+    showQueueOverlay();
+  });
+
+  startWithAiBtn.addEventListener('click', async () => {
+    const res = await emitAsync('start-with-ai', {});
+    if (res?.error) showError(res.error);
+  });
+
+  cancelQueueBtn.addEventListener('click', async () => {
+    await emitAsync('cancel-quick-play', {});
+    hideQueueOverlay();
+  });
+
+  // --- Private Room ---
   createBtn.addEventListener('click', async () => {
     const name = document.getElementById('player-name').value.trim();
     if (!name) return showError('Enter your name');
@@ -51,17 +74,28 @@ export function initLobby() {
     }
   });
 
+  // --- Socket listeners ---
+
   socket.on('room-state', (state) => {
     currentRoom = state.code;
     renderRoomState(state);
   });
 
-  // game-started is now handled by game-ui.mjs (after cut ceremony)
-  // Only switch screen if we somehow missed the cut-ceremony event
   socket.on('game-started', () => {
     if (!document.getElementById('game-screen').classList.contains('active')) {
       showScreen('game');
     }
+  });
+
+  socket.on('queue-status', ({ count }) => {
+    const el = document.getElementById('queue-count');
+    if (el) el.textContent = `${count} in queue`;
+  });
+
+  socket.on('queue-matched', ({ code }) => {
+    hideQueueOverlay();
+    currentRoom = code;
+    showScreen('game');
   });
 }
 
@@ -72,10 +106,28 @@ function renderSeatSlot(state, seat) {
 
   if (info) {
     div.classList.add('occupied');
-    if (!info.connected) div.classList.add('disconnected');
-    div.innerHTML = `<div class="seat-player">${info.name}${!info.connected ? ' (disconnected)' : ''}</div>`;
+    if (info.isAi) {
+      // AI player — show bot badge with remove button
+      div.classList.add('ai-seat');
+      div.innerHTML = `
+        <div class="ai-player">
+          <span class="ai-badge">🤖</span>
+          <span class="seat-player">${info.name}</span>
+          ${!state.started ? `<button class="remove-ai-btn" data-seat="${seat}" title="Remove bot">✕</button>` : ''}
+        </div>
+      `;
+    } else {
+      if (!info.connected) div.classList.add('disconnected');
+      div.innerHTML = `<div class="seat-player">${info.name}${!info.connected ? ' (disconnected)' : ''}</div>`;
+    }
   } else {
-    div.innerHTML = `<button class="sit-btn" data-seat="${seat}">Sit Here</button>`;
+    // Empty seat — show Sit Here + Add Bot
+    div.innerHTML = `
+      <div class="seat-actions">
+        <button class="sit-btn" data-seat="${seat}">Sit Here</button>
+        <button class="add-ai-btn" data-seat="${seat}">+ Bot</button>
+      </div>
+    `;
   }
   return div;
 }
@@ -134,7 +186,25 @@ function renderRoomState(state) {
     });
   });
 
-  // Start game button
+  // Add AI handlers
+  seatsDiv.querySelectorAll('.add-ai-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const seat = btn.dataset.seat;
+      const res = await emitAsync('add-ai', { code: state.code, seat });
+      if (res?.error) showError(res.error);
+    });
+  });
+
+  // Remove AI handlers
+  seatsDiv.querySelectorAll('.remove-ai-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const seat = btn.dataset.seat;
+      const res = await emitAsync('remove-ai', { code: state.code, seat });
+      if (res?.error) showError(res.error);
+    });
+  });
+
+  // Start game button — enabled when all 4 seats filled (min 1 human)
   const startBtn = document.getElementById('start-btn');
   const allSeated = SEATS.every(s => state.seats[s]);
   startBtn.disabled = !allSeated;
@@ -142,6 +212,14 @@ function renderRoomState(state) {
     const res = await emitAsync('start-game', { code: state.code });
     if (res.error) showError(res.error);
   };
+}
+
+function showQueueOverlay() {
+  document.getElementById('queue-overlay').classList.add('visible');
+}
+
+function hideQueueOverlay() {
+  document.getElementById('queue-overlay').classList.remove('visible');
 }
 
 function showError(msg) {
