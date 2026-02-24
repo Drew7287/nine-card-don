@@ -3,16 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nine-Card Don</title>
+  <title>Nine-Card Don — Play Welsh Don Online</title>
+  <meta name="description" content="Play Nine-Card Don (Welsh Don) online for free. A traditional Welsh trick-taking card game for 4 players in partnerships. Play with friends or AI opponents.">
+  <meta name="keywords" content="Nine-Card Don, Welsh Don, Don card game, Welsh card game, trick-taking game, play don online, nine card don">
+  <link rel="canonical" href="https://nine-card-don.co.uk/">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Nine-Card Don — Play Welsh Don Online">
+  <meta property="og:description" content="Play Nine-Card Don online for free. A traditional Welsh trick-taking card game for 4 players. Play with friends or AI opponents.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://nine-card-don.co.uk/">
+  <meta property="og:site_name" content="Nine-Card Don">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Nine-Card Don — Play Welsh Don Online">
+  <meta name="twitter:description" content="Play Nine-Card Don online for free. Traditional Welsh trick-taking card game for 4 players in partnerships.">
+
+  <!-- Schema.org structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Nine-Card Don",
+    "alternateName": "Welsh Don",
+    "description": "Play Nine-Card Don (Welsh Don) online for free. A traditional Welsh trick-taking card game for 4 players in partnerships.",
+    "url": "https://nine-card-don.co.uk/",
+    "applicationCategory": "GameApplication",
+    "genre": "Card Game",
+    "operatingSystem": "Any",
+    "browserRequirements": "Requires JavaScript",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" }
+  }
+  </script>
+
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/cards.css">
 </head>
 <body>
+  <!-- Reconnecting banner (shown when socket disconnects on mobile/network loss) -->
+  <div id="reconnecting-banner" class="reconnecting-banner">Reconnecting&hellip;</div>
+
   <!-- LOBBY SCREEN -->
   <div id="lobby-screen" class="screen active">
     <div class="lobby-container">
       <h1>Nine-Card Don</h1>
       <p class="subtitle">Welsh Don — Trick-Taking Card Game</p>
+      <a href="/rules.html" class="rules-link">How to Play</a>
 
       <div class="form-group">
         <label for="player-name">Your Name</label>

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Play Nine-Card Don — Rules of Welsh Don Card Game</title>
+  <meta name="description" content="Complete rules for Nine-Card Don (Welsh Don), a traditional Welsh trick-taking card game for 4 players in partnerships. Learn dealing, pitching, trump scoring, the game bonus, and how to win.">
+  <meta name="keywords" content="Nine-Card Don, Welsh Don, Don card game, Welsh card game, trick-taking game, nine card don rules, how to play don">
+  <link rel="canonical" href="https://nine-card-don.co.uk/rules.html">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="How to Play Nine-Card Don — Rules of Welsh Don">
+  <meta property="og:description" content="Complete rules for Nine-Card Don, a traditional Welsh trick-taking card game for 4 players in partnerships. Learn trump scoring, the game bonus, and strategy.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://nine-card-don.co.uk/rules.html">
+  <meta property="og:site_name" content="Nine-Card Don">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="How to Play Nine-Card Don — Welsh Don Rules">
+  <meta name="twitter:description" content="Learn the rules of Nine-Card Don, a traditional Welsh trick-taking card game for 4 players in partnerships.">
+
+  <!-- Schema.org structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "How to Play Nine-Card Don — Complete Rules",
+    "description": "Complete rules for Nine-Card Don (Welsh Don), a traditional Welsh trick-taking card game for 4 players in partnerships.",
+    "author": { "@type": "Organization", "name": "Nine-Card Don" },
+    "mainEntityOfPage": "https://nine-card-don.co.uk/rules.html"
+  }
+  </script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #141010;
+      --bg-light: #1e1814;
+      --felt: #1e5c2a;
+      --wood: #4a2a12;
+      --wood-light: #6b4420;
+      --accent: #a88a3c;
+      --accent-hover: #c4a452;
+      --text: #e8dcc4;
+      --text-dim: #8a7e60;
+      --gold: #a88a3c;
+      --ns-color: #5dade2;
+      --ew-color: #e8985a;
+      --danger: #c0392b;
+    }
+
+    html {
+      font-family: Georgia, 'Times New Roman', serif;
+      background: var(--bg);
+      color: var(--text);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+      line-height: 1.7;
+    }
+
+    a { color: var(--gold); }
+    a:hover { color: var(--accent-hover); }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 0.9rem;
+      text-decoration: none;
+    }
+    .back-link::before { content: '\2190 '; }
+
+    h1 {
+      font-size: 2.2rem;
+      color: var(--gold);
+      margin-bottom: 0.3rem;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    .subtitle {
+      color: var(--text-dim);
+      font-size: 1rem;
+      margin-bottom: 2rem;
+      font-style: italic;
+    }
+
+    /* Table of contents */
+    .toc {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--wood);
+      border-radius: 8px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .toc h2 {
+      font-size: 1rem;
+      color: var(--text-dim);
+      margin-bottom: 0.6rem;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .toc ol {
+      padding-left: 1.3rem;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 0.95rem;
+    }
+    .toc li { margin-bottom: 0.3rem; }
+    .toc a { text-decoration: none; }
+
+    h2 {
+      font-size: 1.5rem;
+      color: var(--gold);
+      margin: 2.5rem 0 0.8rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid var(--wood);
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      color: var(--text);
+      margin: 1.5rem 0 0.5rem;
+    }
+
+    p { margin-bottom: 1rem; }
+
+    ul, ol {
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+    }
+    li { margin-bottom: 0.35rem; }
+
+    /* Scoring tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0 1.5rem;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 0.95rem;
+    }
+    th, td {
+      padding: 0.5rem 0.8rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    th {
+      color: var(--gold);
+      font-weight: 600;
+      border-bottom: 2px solid var(--wood);
+    }
+    td:last-child, th:last-child { text-align: right; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .points-highlight {
+      color: var(--gold);
+      font-weight: bold;
+    }
+
+    /* Card suit colours */
+    .suit-red { color: #d32f2f; }
+    .suit-black { color: var(--text); }
+
+    /* Callout boxes */
+    .callout {
+      background: rgba(168,138,60,0.08);
+      border-left: 3px solid var(--gold);
+      padding: 0.8rem 1rem;
+      margin: 1rem 0 1.5rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.95rem;
+    }
+    .callout strong { color: var(--gold); }
+
+    .play-cta {
+      text-align: center;
+      margin: 3rem 0 1rem;
+      padding: 2rem;
+      background: rgba(30,92,42,0.2);
+      border: 1px solid var(--felt);
+      border-radius: 10px;
+    }
+    .play-cta h2 {
+      border: none;
+      margin-top: 0;
+    }
+    .play-cta .btn {
+      display: inline-block;
+      padding: 0.8rem 2rem;
+      background: linear-gradient(180deg, var(--accent) 0%, var(--wood-light) 100%);
+      color: #1a1a1a;
+      text-decoration: none;
+      border-radius: 6px;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 1.1rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .play-cta .btn:hover {
+      background: linear-gradient(180deg, var(--accent-hover) 0%, var(--accent) 100%);
+      color: #1a1a1a;
+    }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--wood);
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 1.2rem 1rem 3rem; }
+      h1 { font-size: 1.7rem; }
+      h2 { font-size: 1.25rem; }
+      table { font-size: 0.85rem; }
+      th, td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<a href="/" class="back-link">Play Nine-Card Don</a>
+
+<h1>How to Play Nine-Card Don</h1>
+<p class="subtitle">The complete rules of Welsh Don, a traditional trick-taking card game from Wales</p>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#players-and-teams">Players &amp; Teams</a></li>
+    <li><a href="#the-deal">The Deal</a></li>
+    <li><a href="#cut-for-pitch">Cut for Pitch</a></li>
+    <li><a href="#pitching-and-trump">Pitching &amp; Trump</a></li>
+    <li><a href="#playing-tricks">Playing Tricks</a></li>
+    <li><a href="#scoring">Scoring</a></li>
+    <li><a href="#game-bonus">The Game Bonus</a></li>
+    <li><a href="#winning">Winning the Game</a></li>
+    <li><a href="#strategy">Strategy Tips</a></li>
+  </ol>
+</nav>
+
+<h2 id="overview">Overview</h2>
+<p>
+  Nine-Card Don (also known as <strong>Welsh Don</strong>) is a trick-taking card game traditionally played in Wales.
+  Four players sit in two partnerships and compete across a series of hands to be the first team to <strong>peg 121 points</strong>.
+  Each hand consists of nine tricks, with points scored for winning tricks containing trump cards and fives.
+</p>
+<p>
+  Don is related to the broader family of <em>Pitch</em> and <em>All Fours</em> card games but has its own distinctive Welsh character,
+  particularly in the nine-card deal, the high value of the trump 9 and 5, and the <strong>game bonus</strong> counted at the end of each hand.
+</p>
+
+<h2 id="players-and-teams">Players &amp; Teams</h2>
+<p>
+  Don is a game for exactly <strong>four players</strong> in fixed partnerships. Partners sit opposite each other at the table.
+  There are two teams, and each team works together to win tricks and accumulate points.
+</p>
+<p>
+  In our online version, the teams are shown with the players' names (e.g. "Neil &amp; Gill vs Owen &amp; Rhys") rather than compass positions.
+  You cannot see your partner's hand &mdash; only your own nine cards.
+</p>
+
+<h2 id="the-deal">The Deal</h2>
+<p>
+  A standard 52-card deck is used. Each player is dealt <strong>9 cards</strong>, dealt in three rounds of three.
+  This leaves 16 cards undealt and unseen &mdash; you never know exactly what's out there.
+</p>
+<p>
+  The player who pitches (leads the first card) acts as the dealer for that hand.
+  After each hand, the pitcher role passes clockwise to the next player.
+</p>
+
+<h2 id="cut-for-pitch">Cut for Pitch</h2>
+<p>
+  Before the very first hand of a game, the two teams <strong>cut for pitch</strong>.
+  Each team draws a card from the deck &mdash; the team with the higher card wins the cut.
+</p>
+<p>
+  The winning team then chooses which of their two players will pitch first.
+  This is a small but real advantage: the pitcher gets to choose the trump suit and leads the first trick.
+</p>
+
+<div class="callout">
+  <strong>Note:</strong> The cut happens once at the start of the game, not before every hand.
+  After the first hand, the pitcher role simply rotates clockwise.
+</div>
+
+<h2 id="pitching-and-trump">Pitching &amp; Trump</h2>
+<p>
+  The pitcher leads the first trick by playing any card from their hand.
+  <strong>The suit of that first card becomes trump for the entire hand.</strong>
+</p>
+<p>
+  Choosing which suit to pitch is one of the most important decisions in the game.
+  You want a suit where you hold strong scoring cards (the Ace, 9, 5, King, and other high trumps).
+</p>
+
+<h2 id="playing-tricks">Playing Tricks</h2>
+<p>Each hand has nine tricks. On each trick:</p>
+<ol>
+  <li>The lead player plays any card from their hand.</li>
+  <li>Each subsequent player <strong>must follow the suit led</strong> if they hold any cards of that suit.</li>
+  <li>If you cannot follow suit, you may play <strong>any card</strong> (including a trump to win the trick).</li>
+</ol>
+
+<h3>Who wins the trick?</h3>
+<ul>
+  <li>If any trumps were played, the <strong>highest trump</strong> wins.</li>
+  <li>If no trumps were played, the <strong>highest card of the suit led</strong> wins.</li>
+  <li>Cards of a different non-trump suit have no power &mdash; they cannot win the trick.</li>
+</ul>
+
+<div class="callout">
+  <strong>Rank order is normal:</strong> A &gt; K &gt; Q &gt; J &gt; 10 &gt; 9 &gt; 8 &gt; 7 &gt; 6 &gt; 5 &gt; 4 &gt; 3 &gt; 2.
+  The 5 and 9 of trump score lots of points but they don't beat higher-ranking cards.
+</div>
+
+<p>The winner of each trick leads the next one.</p>
+
+<h2 id="scoring">Scoring</h2>
+<p>
+  Points are <strong>pegged live</strong> &mdash; scored immediately when a trick is won, not tallied at the end.
+  Only certain cards in the winning team's tricks score points.
+</p>
+
+<h3>Trump card points</h3>
+<p>When a trick is won, any <strong>trump cards</strong> in that trick score for the winning team:</p>
+
+<table>
+  <thead>
+    <tr><th>Trump Card</th><th>Points</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>5 of trump</td><td class="points-highlight">10</td></tr>
+    <tr><td>9 of trump</td><td class="points-highlight">9</td></tr>
+    <tr><td>Ace of trump</td><td>4</td></tr>
+    <tr><td>King of trump</td><td>3</td></tr>
+    <tr><td>Queen of trump</td><td>2</td></tr>
+    <tr><td>Jack of trump</td><td>1</td></tr>
+    <tr><td>Other trumps (10, 8, 7, 6, 4, 3, 2)</td><td>0</td></tr>
+  </tbody>
+</table>
+
+<h3>Non-trump fives</h3>
+<p>
+  The <strong>5 of any non-trump suit</strong> is also worth <strong>5 points</strong> to the team that wins the trick containing it.
+  Fives are always valuable, regardless of suit.
+</p>
+
+<div class="callout">
+  <strong>Maximum points in a single trick:</strong> If all four cards in a trick are scoring cards,
+  a single trick can be worth over 20 points. Winning the right tricks is far more important than winning lots of tricks.
+</div>
+
+<h2 id="game-bonus">The Game Bonus</h2>
+<p>
+  At the end of each hand (after all nine tricks), the <strong>"game" bonus</strong> is calculated.
+  This is a bonus of <strong>8 points</strong> awarded to the team whose won tricks contain the higher total
+  <em>game count</em>.
+</p>
+
+<h3>Game count values</h3>
+<p>Every card won in tricks (all suits, trump or not) is counted:</p>
+
+<table>
+  <thead>
+    <tr><th>Card</th><th>Game Value</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>10 (any suit)</td><td class="points-highlight">10</td></tr>
+    <tr><td>Ace (any suit)</td><td>4</td></tr>
+    <tr><td>King (any suit)</td><td>3</td></tr>
+    <tr><td>Queen (any suit)</td><td>2</td></tr>
+    <tr><td>Jack (any suit)</td><td>1</td></tr>
+    <tr><td>All other cards</td><td>0</td></tr>
+  </tbody>
+</table>
+
+<p>
+  Each team totals the game values of every card they won across all nine tricks.
+  The team with the <strong>higher total wins 8 points</strong>. If the counts are tied, neither team scores the game bonus.
+</p>
+
+<div class="callout">
+  <strong>Tens are king:</strong> With a game value of 10, the four Tens are the most important cards
+  for the game bonus. Winning tricks that contain Tens &mdash; even off-suit Tens &mdash; can swing 8 points your way.
+</div>
+
+<h2 id="winning">Winning the Game</h2>
+<p>
+  The first team to reach <strong>121 points</strong> wins the game.
+  Because points are pegged live during tricks, a team can win <strong>mid-hand</strong> &mdash;
+  the game ends the moment a team reaches 121, even if tricks remain to be played.
+</p>
+<p>
+  If a team reaches 121 during trick scoring, the game bonus is not counted.
+  Only points pegged during play matter.
+</p>
+
+<h2 id="strategy">Strategy Tips</h2>
+<ul>
+  <li><strong>Pitch your strongest suit.</strong> Look for a suit where you hold the 5, 9, Ace, or multiple high trumps.</li>
+  <li><strong>Protect your fives.</strong> The 5 of trump is worth 10 points. If you can't win a trick with it, try to play it when your partner is winning.</li>
+  <li><strong>Count the trumps.</strong> There are 13 cards in each suit but only 36 are dealt. Track which trumps have been played.</li>
+  <li><strong>Win tricks with Tens.</strong> Even off-suit Tens count toward the game bonus. An 8-point swing can change everything.</li>
+  <li><strong>Lead strong when pitching.</strong> As pitcher, you choose trump and lead first. Start with your Ace or King to establish dominance.</li>
+  <li><strong>Sacrifice wisely.</strong> Sometimes it's better to throw a non-scoring card on a lost trick than waste a trump.</li>
+</ul>
+
+<div class="play-cta">
+  <h2>Ready to play?</h2>
+  <p>Play Nine-Card Don online with friends or against AI opponents.</p>
+  <a href="/" class="btn">Play Now</a>
+</div>
+
+<footer>
+  <p>Nine-Card Don &mdash; a traditional Welsh card game, playable online for free.</p>
+</footer>
+
+</body>
+</html>

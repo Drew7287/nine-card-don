@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nine-card-don.co.uk/sitemap.xml

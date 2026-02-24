@@ -92,8 +92,22 @@ html, body {
 
 .subtitle {
   color: var(--text-dim);
-  margin-bottom: 2rem;
+  margin-bottom: 0.6rem;
   font-size: 0.95rem;
+}
+
+.rules-link {
+  display: inline-block;
+  color: var(--gold);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--wood-light);
+  padding-bottom: 1px;
+  transition: color 0.2s;
+}
+.rules-link:hover {
+  color: var(--accent-hover);
 }
 
 .form-group {
@@ -1256,4 +1270,28 @@ input[type="text"]:focus {
     width: 220px;
     height: 130px;
   }
+}
+
+/* --- Reconnecting banner --- */
+
+.reconnecting-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  background: var(--danger, #c0392b);
+  color: #fff;
+  text-align: center;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  transform: translateY(-100%);
+  transition: transform 0.25s ease;
+  pointer-events: none;
+}
+
+.reconnecting-banner.visible {
+  transform: translateY(0);
 }
