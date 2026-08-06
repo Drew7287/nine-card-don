@@ -47,6 +47,7 @@ const tally = {
   handsPerGame: [],
   byDay: {},               // 'YYYY-MM-DD' -> { started, completed, connections }
   byCountry: {},           // two-letter country code -> connections
+  botConnections: 0,       // headless browsers, crawlers, our own verification runs
   feedback: 0,
 };
 
@@ -68,6 +69,11 @@ function apply(e) {
       tally.connections += 1;
       bumpDay(e.ts, 'connections');
       if (e.country) tally.byCountry[e.country] = (tally.byCountry[e.country] || 0) + 1;
+      break;
+    // Counted separately rather than discarded: a dropped number that nobody can see
+    // reads as "nothing happened", which is how silent filters mislead you later.
+    case 'connect_bot':
+      tally.botConnections += 1;
       break;
     case 'feedback':
       tally.feedback += 1;
@@ -199,8 +205,9 @@ export function gameAbandoned(code) {
  * @param country two-letter code from the edge (cf-ipcountry), or null if absent.
  * Country only, never the IP address, so nothing here identifies a person.
  */
-export function connectionOpened(country = null) {
+export function connectionOpened(country = null, isBot = false) {
   currentConnections += 1;
+  if (isBot) return record('connect_bot', country ? { country } : {});
   record('connect', country ? { country } : {});
 }
 
@@ -230,7 +237,8 @@ export function snapshot() {
       gamesInProgress: liveGames.size,
     },
     totals: {
-      connections: tally.connections,
+      connections: tally.connections,       // humans only; bots excluded, see botConnections
+      botConnections: tally.botConnections,
       roomsCreated: tally.roomsCreated,
       queueJoins: tally.queueJoins,
       queueMatchedWithHumans: tally.queueMatchedHumans,

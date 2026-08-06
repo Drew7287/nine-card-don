@@ -4,7 +4,7 @@ import { Server } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { registerHandlers } from './socket-handlers.mjs';
-import { processQueue } from './matchmaking.mjs';
+import { processQueue, queueSize } from './matchmaking.mjs';
 import { snapshot, connectionOpened, connectionClosed, record } from './analytics.mjs';
 import * as notify from './notify.mjs';
 
@@ -73,24 +73,57 @@ app.post('/feedback', express.json({ limit: '16kb' }), (req, res) => {
 
 app.use(express.static(join(__dirname, 'public')));
 
+// Headless browsers, crawlers and our own Playwright verification runs are not visits.
+// Left unfiltered they ping the phone and inflate the connection count; the morning of
+// 6 Aug produced five Telegram pings, all of them our own test runs.
+const BOT_UA = /headless|bot\b|crawler|spider|slurp|bingpreview|playwright|puppeteer|python-requests|curl\/|wget|axios|lighthouse|pingdom|uptime/i;
+
+// --- Presence ---------------------------------------------------------------
+// "Players online" counts real people only. Counting crawlers and our own test runs
+// would show a busy site to someone sitting on their own, which is worse than a
+// truthful 1: they would wait for a Quick Play match that is never coming.
+
+const humanSockets = new Set();
+let lastPresence = '';
+
+function broadcastPresence() {
+  const payload = { online: humanSockets.size, inQueue: queueSize() };
+  const key = JSON.stringify(payload);
+  if (key === lastPresence) return;   // nothing changed; do not chatter at every client
+  lastPresence = key;
+  io.emit('presence', payload);
+}
+
 io.on('connection', (socket) => {
   console.log(`connected: ${socket.id}`);
 
   // Country only, taken from the edge header. No IP is recorded or stored.
   const h = socket.handshake.headers || {};
   const country = h['cf-ipcountry'] || h['x-vercel-ip-country'] || null;
-  connectionOpened(country);
-  notify.visit({ country, ua: (h['user-agent'] || '').slice(0, 120) });
+  const ua = (h['user-agent'] || '').slice(0, 200);
+  const isBot = BOT_UA.test(ua);
+
+  connectionOpened(country, isBot);
+  if (!isBot) {
+    notify.visit({ country, ua: ua.slice(0, 120) });
+    humanSockets.add(socket.id);
+  }
+  broadcastPresence();
 
   registerHandlers(io, socket);
   socket.on('disconnect', () => {
     console.log(`disconnected: ${socket.id}`);
     connectionClosed();
+    humanSockets.delete(socket.id);
+    broadcastPresence();
   });
 });
 
 // Process matchmaking queue every 2 seconds
-setInterval(() => processQueue(io), 2000);
+setInterval(() => {
+  processQueue(io);
+  broadcastPresence();   // keeps the queue figure fresh without its own timer
+}, 2000);
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {

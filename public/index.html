@@ -55,6 +55,7 @@
     <div class="lobby-container">
       <h1>Nine-Card Don</h1>
       <p class="subtitle">Welsh Don, the trick-taking card game</p>
+      <p id="presence" class="presence"></p>
       <a href="/rules.html" class="rules-link">How to Play</a>
 
       <div class="form-group">
@@ -76,6 +77,9 @@
       </div>
 
       <div id="lobby-error" class="error-msg" style="display:none"></div>
+
+      <button id="share-site-btn" class="share-btn" type="button">Share with friends</button>
+      <p id="share-site-status" class="share-status"></p>
     </div>
 
     <!-- Queue overlay -->
@@ -95,6 +99,9 @@
     <div class="room-container">
       <h2>Room: <span id="room-code-display"></span></h2>
       <p id="partnerships" class="partnerships"></p>
+
+      <button id="share-room-btn" class="share-btn" type="button">Invite friends to this room</button>
+      <p id="share-room-status" class="share-status"></p>
 
       <div id="seats" class="seats-grid"></div>
 

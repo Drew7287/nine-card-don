@@ -19,6 +19,10 @@ export function leaveQueue(socketId) {
   queue.delete(socketId);
 }
 
+export function queueSize() {
+  return queue.size;
+}
+
 export function processQueue(io) {
   if (queue.size === 0) return;
 

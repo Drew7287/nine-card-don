@@ -1513,3 +1513,45 @@ input[type="text"]:focus {
   accent-color: var(--accent);
   cursor: pointer;
 }
+
+/* --- Players online + share --------------------------------------------- */
+
+.presence {
+  color: var(--green);
+  font-size: 0.82rem;
+  margin-bottom: 0.5rem;
+  min-height: 1.2em;   /* reserve the line so the lobby does not jump on first update */
+}
+
+.share-btn {
+  margin-top: 1.2rem;
+  background: none;
+  border: 1px solid var(--wood-light);
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 0.82rem;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.share-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.share-status {
+  min-height: 1.2em;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  word-break: break-all;
+}
+
+.share-status.ok { color: var(--green); }
+.share-status.error { color: var(--text-dim); }
+
+.room-container .share-btn {
+  margin-bottom: 0.4rem;
+}
