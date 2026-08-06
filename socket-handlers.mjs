@@ -240,6 +240,41 @@ export function registerHandlers(io, socket) {
     }, 3000);
   });
 
+  // --- Table chat (6 Aug 2026) ---
+  // Ephemeral: nothing is stored server-side or in the database. A message goes
+  // to the people at that table and is gone. Bots never chat.
+  const chatTimes = [];
+  const CHAT_MAX = 5;              // messages
+  const CHAT_WINDOW_MS = 10_000;   // per this long
+  const CHAT_MAX_LEN = 200;
+
+  socket.on('chat', ({ code, text }, ack) => {
+    const room = getRoom(code);
+    if (!room) return ack?.({ error: 'Room not found' });
+
+    // Only someone actually sitting at this table can talk at it.
+    const player = room.players[socket.id];
+    if (!player) return ack?.({ error: 'Not in this room' });
+
+    const msg = String(text || '').trim().slice(0, CHAT_MAX_LEN);
+    if (!msg) return ack?.({ error: 'Empty message' });
+
+    const now = Date.now();
+    while (chatTimes.length && now - chatTimes[0] > CHAT_WINDOW_MS) chatTimes.shift();
+    if (chatTimes.length >= CHAT_MAX) return ack?.({ error: 'Slow down a moment' });
+    chatTimes.push(now);
+
+    ack?.({ ok: true });
+    // The name comes from the seat, never from the payload, so nobody can speak
+    // as somebody else. The client renders it as text, never as markup.
+    io.to(room.code).emit('chat', {
+      name: player.name,
+      seat: player.seat || null,
+      text: msg,
+      at: now,
+    });
+  });
+
   socket.on('disconnect', () => {
     leaveQueue(socket.id); // Remove from matchmaking queue if present
     const result = handleDisconnect(socket.id);

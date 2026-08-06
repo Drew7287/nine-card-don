@@ -2,8 +2,10 @@
 
 /* === Card base === */
 .card {
-  width: 80px;
-  height: 112px;
+  /* 96x134 keeps the 1:1.4 of a real playing card (63x88mm). Enlarged 6 Aug 2026
+     once the layout stopped wasting a third of the screen. */
+  width: 96px;
+  height: 134px;
   background: linear-gradient(145deg, #faf6ee 0%, #efe8d6 100%);
   border-radius: 7px;
   display: flex;
@@ -70,8 +72,8 @@
 
 /* Card back — tarnished brass border, diagonal stripe pattern */
 .card-back {
-  width: 46px;
-  height: 64px;
+  width: 54px;
+  height: 76px;
   background:
     repeating-linear-gradient(
       45deg,

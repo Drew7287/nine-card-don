@@ -151,6 +151,14 @@
 
       <!-- Table area, the green felt -->
       <div class="table-area">
+        <!-- Pub furniture: decorative only, behind the cards, not clickable -->
+        <div class="pub-props" aria-hidden="true">
+          <div class="pub-drink" style="left:28%;top:16%;">
+            <div class="pub-mat" style="transform:rotate(-8deg);"></div>
+            <div class="pub-pint"><div class="glass"></div><div class="head"></div><div class="shine"></div></div>
+          </div>
+          <div class="pub-ashtray" style="right:30%;bottom:24%;"><div class="cig"></div><div class="ash"></div></div>
+        </div>
         <!-- Player positions around the table edge -->
         <div id="player-top" class="player-area pos-top">
           <div class="player-name"></div>
@@ -187,6 +195,24 @@
 
       <!-- Game message toast -->
       <div id="game-message" class="game-message"></div>
+
+      <!-- Table chat: collapsed by default so it never covers the cards -->
+      <div id="chat-panel" class="chat-panel">
+        <button id="chat-toggle" class="chat-toggle" type="button" aria-label="Table chat">
+          Chat <span id="chat-badge" class="chat-badge" style="display:none">0</span>
+        </button>
+        <div class="chat-body">
+          <div class="chat-head">
+            <span>Table chat</span>
+            <button id="chat-close" class="chat-close" type="button" aria-label="Close chat">&times;</button>
+          </div>
+          <div id="chat-log" class="chat-log"></div>
+          <div class="chat-input-row">
+            <input type="text" id="chat-input" maxlength="200" placeholder="Say something" autocomplete="off">
+            <button id="chat-send" class="chat-send" type="button">Send</button>
+          </div>
+        </div>
+      </div>
 
       <!-- Cut ceremony overlay -->
       <div id="cut-overlay" class="cut-overlay">
