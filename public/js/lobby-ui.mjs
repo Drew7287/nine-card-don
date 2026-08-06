@@ -50,20 +50,57 @@ export function initLobby() {
   }
 
   // Auto-rejoin on connect (handles page refresh + socket reconnection)
-  const attemptAutoRejoin = async () => {
+  //
+  // 6 Aug 2026: this used to call clearSession() on ANY outcome that was not a
+  // successful rejoin. One transient failure therefore destroyed the stored room
+  // and name permanently, so every later attempt had nothing to work with. Drew
+  // dropped out of room EFAL on 6 Aug, tried three times in 23 seconds, failed
+  // every time, and a bot took his seat on the 30 second timer.
+  //
+  // Now only a definite answer clears the session. Anything that might be
+  // temporary (the server still holding the old socket, a seat not yet released,
+  // no answer at all) is retried, because on a phone those are normal.
+  const REJOIN_RETRIES = 4;
+  const REJOIN_BACKOFF_MS = [300, 900, 2000, 4000];
+  const GONE = ['room not found'];   // definitive: nothing to go back to
+  let rejoinTimer = null;
+
+  const attemptAutoRejoin = async (attempt = 0) => {
+    clearTimeout(rejoinTimer);
     const session = loadSession();
     if (!session) return;
+
     const res = await emitAsync('join-room', {
       code: session.roomCode,
       playerName: session.playerName,
     });
+
     if (res?.ok && res.rejoined) {
       currentRoom = res.code;
       mySeat = res.seat;
-      // game-state event from server will push us to game screen
-    } else {
-      clearSession();
+      return;   // game-state event from the server pushes us to the game screen
     }
+
+    // Joined, but not into our old seat: we are in the room, so keep the session.
+    if (res?.ok) {
+      currentRoom = res.code;
+      return;
+    }
+
+    const why = String(res?.error || '').toLowerCase();
+    if (GONE.some(g => why.includes(g))) {
+      clearSession();
+      return;
+    }
+
+    if (attempt < REJOIN_RETRIES) {
+      rejoinTimer = setTimeout(
+        () => attemptAutoRejoin(attempt + 1),
+        REJOIN_BACKOFF_MS[attempt] || 4000,
+      );
+    }
+    // Out of retries: the session STAYS. The next reconnect tries again, which
+    // costs nothing and is the whole point on a flaky connection.
   };
 
   if (socket.connected) attemptAutoRejoin();

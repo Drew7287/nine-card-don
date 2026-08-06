@@ -59,7 +59,13 @@ export function getRoom(code) {
   return rooms.get(code?.toUpperCase());
 }
 
-export function joinRoom(code, socketId, playerName) {
+/**
+ * @param isSocketLive optional (id) => boolean. Used only to decide whether a
+ * same-named player already holding a seat is a genuine reconnection or a second
+ * real person who happens to share a name. Defaults to assuming the old socket is
+ * ALIVE, so without it the seat is never taken and behaviour is unchanged.
+ */
+export function joinRoom(code, socketId, playerName, isSocketLive = () => true) {
   const room = rooms.get(code.toUpperCase());
   if (!room) return { error: 'Room not found' };
   if (room.players[socketId]) return { error: 'Already in room' };
@@ -82,6 +88,24 @@ export function joinRoom(code, socketId, playerName) {
       room.players[socketId] = { name: playerName, seat };
       socketToRoom.set(socketId, { code: room.code, seat });
       return { ok: true, room, seat, rejoined: true, wasAiTakeover };
+    }
+  }
+
+  // Same name already seated on a DIFFERENT socket: this is a reconnection whose
+  // old socket the server has not finished tearing down yet. Without this the
+  // player is told the room is full and bounced, which on a flaky connection is
+  // exactly when they most need to get back in. Added 6 Aug 2026 after Drew lost
+  // his seat in room EFAL. The old socket is dropped, not the seat.
+  for (const [oldId, p] of Object.entries(room.players)) {
+    if (oldId !== socketId && p.name.toLowerCase() === playerName.toLowerCase()
+        && !isSocketLive(oldId)) {
+      const seat = p.seat;
+      delete room.players[oldId];
+      socketToRoom.delete(oldId);
+      room.players[socketId] = { name: playerName, seat };
+      if (seat) room.seats[seat] = socketId;
+      socketToRoom.set(socketId, { code: room.code, seat });
+      return { ok: true, room, seat, rejoined: true, tookOverStaleSocket: true };
     }
   }
 

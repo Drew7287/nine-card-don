@@ -30,8 +30,16 @@ export function registerHandlers(io, socket) {
     if (!playerName?.trim()) return ack?.({ error: 'Name required' });
     if (!code?.trim()) return ack?.({ error: 'Room code required' });
 
-    const result = joinRoom(code.trim().toUpperCase(), socket.id, playerName.trim());
-    if (result.error) return ack?.({ error: result.error });
+    // isSocketLive lets room-manager tell a genuine reconnection from a second
+    // person with the same name: only a DEAD socket's seat is handed over.
+    const result = joinRoom(code.trim().toUpperCase(), socket.id, playerName.trim(),
+                            (id) => io.sockets.sockets.has(id));
+    if (result.error) {
+      // Rejoin failures were previously invisible, which is why Drew losing his
+      // seat on 6 Aug could not be explained from the logs.
+      stats.record('join_failed', { code: code.trim().toUpperCase(), reason: result.error });
+      return ack?.({ error: result.error });
+    }
 
     socket.join(result.room.code);
     ack?.({ ok: true, code: result.room.code, rejoined: result.rejoined, seat: result.seat });
