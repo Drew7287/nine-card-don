@@ -1,9 +1,33 @@
 // room-manager.mjs — Room lifecycle, player join/leave, AI seat management
 
 import { createGameState, newHand, personalView, playCard as enginePlayCard, performCut, getPartner, SEATS } from './game-engine.mjs';
+import * as stats from './analytics.mjs';
 
 const rooms = new Map(); // code -> room
 const socketToRoom = new Map(); // socketId -> { code, seat }
+
+// --- Analytics helpers ------------------------------------------------------
+// Hooked here rather than in socket-handlers because the AI paths (choosePitcherBySeat,
+// playCardBySeat) bypass the socket layer entirely. Hooking the room layer catches both.
+
+function noteGameStart(room) {
+  const humans = Object.values(room.players).filter(p => p.seat).length;
+  stats.gameStarted(room.code, {
+    humans,
+    ais: room.aiSeats.size,
+    quickPlay: Boolean(room.quickPlay),
+  });
+}
+
+function noteEngineResult(room, result) {
+  if (!result?.handResult) return;
+  stats.handComplete(room.code);
+  if (result.handResult.gameOver) {
+    // Engine calls the winning partnership `winner` ('NS' or 'EW'), not `winningTeam`;
+    // `winningTeam` belongs to the cut result and is a different thing.
+    stats.gameCompleted(room.code, result.handResult.winner ?? null);
+  }
+}
 
 function generateCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // No I or O to avoid confusion
@@ -135,6 +159,7 @@ export function playCardBySeat(code, seat, card) {
   if (!room || !room.gameState) return { error: 'No active game' };
 
   const result = enginePlayCard(room.gameState, seat, card);
+  noteEngineResult(room, result);
   return { ...result, room, seat };
 }
 
@@ -153,6 +178,7 @@ export function choosePitcherBySeat(code, seat, choice) {
 
   room.phase = 'playing';
   room.gameState = createGameState(pitcherSeat);
+  noteGameStart(room);
   return { ok: true, room, pitcherSeat };
 }
 
@@ -226,6 +252,7 @@ export function choosePitcher(code, socketId, choice) {
 
   room.phase = 'playing';
   room.gameState = createGameState(pitcherSeat);
+  noteGameStart(room);
   return { ok: true, room, pitcherSeat };
 }
 
@@ -236,6 +263,7 @@ export function playCardInRoom(code, socketId, card) {
   if (!player || !player.seat) return { error: 'Not seated' };
 
   const result = enginePlayCard(room.gameState, player.seat, card);
+  noteEngineResult(room, result);
   return { ...result, room, seat: player.seat };
 }
 
@@ -279,11 +307,16 @@ export function handleDisconnect(socketId) {
     room.seats[seat] = null;
 
     if (room.started) {
+      stats.record('disconnect_midgame', { code: room.code });
+
       // Mark as disconnected with 5-min rejoin window (AI takes over after 30s)
       const timeout = setTimeout(() => {
         room.disconnected.delete(seat);
         // If all humans gone and no one reconnecting, delete room
         if (Object.keys(room.players).length === 0 && room.disconnected.size === 0) {
+          // Nobody came back inside the rejoin window. If the game never reached its
+          // end, that is an abandonment; gameAbandoned no-ops on a completed game.
+          stats.gameAbandoned(room.code);
           rooms.delete(room.code);
         }
       }, 300_000);
@@ -363,6 +396,7 @@ export function aiTakeoverSeat(room, seat, originalName) {
   room.seats[seat] = `ai-${seat}`;
   room.aiSeats.add(seat);
   room.aiPlayers[seat] = { name: `Bot (${originalName})` };
+  stats.record('ai_takeover', { code: room.code, seat });
   return true;
 }
 

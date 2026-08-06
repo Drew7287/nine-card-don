@@ -9,6 +9,7 @@ import {
 import { triggerAiTurn, triggerAiPitcherChoice, triggerAiReadyNextHand, isAiSeat } from './ai-controller.mjs';
 import { AI_NAMES } from './ai-player.mjs';
 import { joinQueue, leaveQueue, startWithAi } from './matchmaking.mjs';
+import * as stats from './analytics.mjs';
 
 export function registerHandlers(io, socket) {
 
@@ -17,6 +18,8 @@ export function registerHandlers(io, socket) {
     const room = createRoom(playerName);
     const joinResult = joinRoom(room.code, socket.id, playerName.trim());
     if (joinResult.error) return ack?.({ error: joinResult.error });
+
+    stats.record('room_created', { code: room.code });
 
     socket.join(room.code);
     ack?.({ ok: true, code: room.code });
@@ -83,6 +86,7 @@ export function registerHandlers(io, socket) {
   socket.on('quick-play', ({ playerName }, ack) => {
     if (!playerName?.trim()) return ack?.({ error: 'Name required' });
     joinQueue(socket.id, playerName.trim());
+    stats.record('queue_join');
     ack?.({ ok: true });
   });
 

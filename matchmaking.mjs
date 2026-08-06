@@ -7,6 +7,7 @@ import {
 import { AI_NAMES } from './ai-player.mjs';
 import { triggerAiPitcherChoice, triggerAiTurn, isAiSeat } from './ai-controller.mjs';
 import { SEATS } from './game-engine.mjs';
+import * as stats from './analytics.mjs';
 
 const queue = new Map(); // socketId -> { playerName, joinedAt }
 
@@ -58,6 +59,12 @@ function createMatchedRoom(io, group) {
 
   const room = createRoom('Quick Play');
   const code = room.code;
+  room.quickPlay = true;
+
+  // How long the oldest player waited before this match fired, and whether they got
+  // real people or a table of bots. That distinction is the whole point of the queue.
+  const waitedMs = Date.now() - Math.min(...group.map(([, e]) => e.joinedAt));
+  stats.record('queue_matched', { code, humans: group.length, waitedMs });
 
   // Seat humans
   let seatIdx = 0;
