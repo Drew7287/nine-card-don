@@ -101,7 +101,10 @@ io.on('connection', (socket) => {
   const h = socket.handshake.headers || {};
   const country = h['cf-ipcountry'] || h['x-vercel-ip-country'] || null;
   const ua = (h['user-agent'] || '').slice(0, 200);
-  const isBot = BOT_UA.test(ua);
+  // Our own verification runs spoof a real Chrome user agent on purpose, to prove the
+  // presence counter counts humans. That defeats BOT_UA, so they announce themselves
+  // with a header instead. A real player's browser never sends it.
+  const isBot = h['x-marvin-verify'] === '1' || BOT_UA.test(ua);
 
   connectionOpened(country, isBot);
   if (!isBot) {
