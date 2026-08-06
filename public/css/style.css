@@ -1555,3 +1555,70 @@ input[type="text"]:focus {
 .room-container .share-btn {
   margin-bottom: 0.4rem;
 }
+
+/* --- Room seat layout fix ----------------------------------------------- */
+/* .team-group carried min-width:180px but its real content (two seat slots, the
+   "&", and a "+ Bot" button inside each empty slot) is far wider. As flex children
+   they shrank below that content and the buttons spilled over their own borders,
+   overlapping each other. Nothing here is decorative: it stops the shrink and lets
+   the row wrap instead. */
+
+.seats-grid {
+  flex-wrap: wrap;
+}
+
+.team-group {
+  flex: 0 0 auto;
+}
+
+.team-seats {
+  flex-wrap: wrap;
+}
+
+.seat-slot {
+  flex: 0 0 auto;
+}
+
+.seat-actions {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+/* Two team panels side by side do not fit a phone. Stack them, and turn the "vs"
+   into a horizontal separator rather than a squeezed column. */
+@media (max-width: 640px) {
+  .seats-grid {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .team-group {
+    width: 100%;
+    padding: 0.75rem 1rem;
+  }
+
+  .teams-vs {
+    padding: 0.15rem 0;
+  }
+}
+
+/* Deliberately NOT widening .room-container to force the teams side by side.
+   Tried 940px: it fits Team 1 and the "vs" but not Team 2, so the row half-wraps
+   and goes off-centre. Any wrap-based width has that broken in-between band at some
+   viewport size. Stacked (Team 1 / VS / Team 2) is predictable at every width, reads
+   correctly, and measured zero overlaps at 1280, 768, 390 and 320. */
+
+/* Stack explicitly rather than relying on flex-wrap. Wrapping left the "vs" sitting
+   beside Team 1 instead of between the panels, and let the two panels take different
+   widths depending on how long the players' names were. A column has no in-between
+   band and both panels align. */
+.seats-grid {
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.team-group {
+  width: 100%;
+  max-width: 420px;
+}
