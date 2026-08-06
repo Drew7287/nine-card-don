@@ -204,6 +204,33 @@
     </div>
   </div>
 
+  <!-- Welcome (first visit; reuses the feedback modal styling) -->
+  <div id="welcome-modal" class="feedback-modal">
+    <div class="feedback-panel" role="dialog" aria-labelledby="welcome-title" aria-modal="true">
+      <h3 id="welcome-title">Croeso &mdash; welcome to Nine-Card Don</h3>
+      <p class="welcome-text">
+        A traditional Welsh trick-taking game for four players in partnerships. Play with
+        friends in a private room, or hit Quick Play and let bots fill the empty seats.
+      </p>
+      <p class="welcome-text">
+        New: there is a <strong>Feedback</strong> button in the corner. Bugs, rules arguments,
+        ideas for what it should do next &mdash; it goes straight to the person who built it.
+      </p>
+      <p class="welcome-text">
+        Never played? The <a href="/rules.html">rules are here</a>.
+      </p>
+
+      <label class="welcome-check">
+        <input type="checkbox" id="welcome-hide">
+        <span>Don't show this again</span>
+      </label>
+
+      <div class="feedback-actions">
+        <button id="welcome-close" class="btn btn-primary" type="button">Let's play</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Feedback -->
   <button id="feedback-btn" class="feedback-btn" type="button">Feedback</button>
 
