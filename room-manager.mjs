@@ -2,6 +2,7 @@
 
 import { createGameState, newHand, personalView, playCard as enginePlayCard, performCut, getPartner, SEATS } from './game-engine.mjs';
 import * as stats from './analytics.mjs';
+import * as notify from './notify.mjs';
 
 const rooms = new Map(); // code -> room
 const socketToRoom = new Map(); // socketId -> { code, seat }
@@ -12,11 +13,9 @@ const socketToRoom = new Map(); // socketId -> { code, seat }
 
 function noteGameStart(room) {
   const humans = Object.values(room.players).filter(p => p.seat).length;
-  stats.gameStarted(room.code, {
-    humans,
-    ais: room.aiSeats.size,
-    quickPlay: Boolean(room.quickPlay),
-  });
+  const info = { humans, ais: room.aiSeats.size, quickPlay: Boolean(room.quickPlay) };
+  stats.gameStarted(room.code, info);
+  notify.gameStarted(info);   // pings only at 2+ humans; see notify.mjs
 }
 
 function noteEngineResult(room, result) {

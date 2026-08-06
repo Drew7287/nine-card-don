@@ -44,6 +44,12 @@
   <!-- Reconnecting banner (shown when socket disconnects on mobile/network loss) -->
   <div id="reconnecting-banner" class="reconnecting-banner">Reconnecting&hellip;</div>
 
+  <!-- Announcement banner (populated from /announcement; hidden when empty) -->
+  <div id="announcement-banner" class="announcement-banner">
+    <span id="announcement-text"></span>
+    <button id="announcement-close" class="announcement-close" aria-label="Dismiss">&times;</button>
+  </div>
+
   <!-- LOBBY SCREEN -->
   <div id="lobby-screen" class="screen active">
     <div class="lobby-container">
@@ -195,6 +201,39 @@
 
       <!-- Hand summary overlay -->
       <div id="hand-summary" class="hand-summary"></div>
+    </div>
+  </div>
+
+  <!-- Feedback -->
+  <button id="feedback-btn" class="feedback-btn" type="button">Feedback</button>
+
+  <div id="feedback-modal" class="feedback-modal">
+    <div class="feedback-panel" role="dialog" aria-labelledby="feedback-title" aria-modal="true">
+      <h3 id="feedback-title">Tell us what you think</h3>
+      <p class="feedback-sub">Bugs, rules disputes, ideas. It all goes straight to the person who built it.</p>
+
+      <label for="feedback-message">Your message</label>
+      <textarea id="feedback-message" maxlength="2000" rows="5"
+                placeholder="What happened, or what would make this better?"></textarea>
+
+      <div class="feedback-row">
+        <div>
+          <label for="feedback-name">Name (optional)</label>
+          <input type="text" id="feedback-name" maxlength="40" autocomplete="off">
+        </div>
+        <div>
+          <label for="feedback-email">Email (optional)</label>
+          <input type="email" id="feedback-email" maxlength="120" autocomplete="off"
+                 placeholder="Only if you want a reply">
+        </div>
+      </div>
+
+      <p id="feedback-status" class="feedback-status"></p>
+
+      <div class="feedback-actions">
+        <button id="feedback-cancel" class="btn btn-secondary" type="button">Cancel</button>
+        <button id="feedback-send" class="btn btn-primary" type="button">Send</button>
+      </div>
     </div>
   </div>
 

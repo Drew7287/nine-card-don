@@ -46,6 +46,8 @@ const tally = {
   durationsMs: [],
   handsPerGame: [],
   byDay: {},               // 'YYYY-MM-DD' -> { started, completed, connections }
+  byCountry: {},           // two-letter country code -> connections
+  feedback: 0,
 };
 
 function day(iso) {
@@ -65,6 +67,10 @@ function apply(e) {
     case 'connect':
       tally.connections += 1;
       bumpDay(e.ts, 'connections');
+      if (e.country) tally.byCountry[e.country] = (tally.byCountry[e.country] || 0) + 1;
+      break;
+    case 'feedback':
+      tally.feedback += 1;
       break;
     case 'room_created':
       tally.roomsCreated += 1;
@@ -189,9 +195,13 @@ export function gameAbandoned(code) {
   liveGames.delete(code);
 }
 
-export function connectionOpened() {
+/**
+ * @param country two-letter code from the edge (cf-ipcountry), or null if absent.
+ * Country only, never the IP address, so nothing here identifies a person.
+ */
+export function connectionOpened(country = null) {
   currentConnections += 1;
-  record('connect');
+  record('connect', country ? { country } : {});
 }
 
 export function connectionClosed() {
@@ -231,6 +241,7 @@ export function snapshot() {
       handsPlayed: tally.handsPlayed,
       aiTakeovers: tally.aiTakeovers,
       midGameDisconnects: tally.midGameDisconnects,
+      feedback: tally.feedback,
     },
     rates: {
       completionPct: pct(tally.gamesCompleted, tally.gamesStarted),
@@ -239,6 +250,7 @@ export function snapshot() {
       avgGameMinutes: avgMs === null ? null : Math.round(avgMs / 600) / 100,
     },
     humansPerGame: tally.humanCounts,
+    byCountry: tally.byCountry,
     byDay: tally.byDay,
   };
 }

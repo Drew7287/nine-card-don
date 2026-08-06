@@ -1295,3 +1295,178 @@ input[type="text"]:focus {
 .reconnecting-banner.visible {
   transform: translateY(0);
 }
+
+/* --- Announcement banner ------------------------------------------------ */
+/* Sits below the reconnecting banner in z-order: a connection problem always
+   outranks an announcement. */
+
+.announcement-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9500;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  background: var(--wood-light);
+  color: var(--text);
+  border-bottom: 1px solid var(--accent);
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.announcement-banner.visible {
+  display: flex;
+}
+
+.announcement-close {
+  margin-left: auto;
+  flex: none;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.announcement-close:hover {
+  color: var(--text);
+}
+
+/* --- Feedback ----------------------------------------------------------- */
+
+.feedback-btn {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 9000;
+  background: var(--bg-light);
+  color: var(--text-dim);
+  border: 1px solid var(--wood-light);
+  border-radius: 20px;
+  padding: 7px 15px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.feedback-btn:hover {
+  opacity: 1;
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.feedback-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  padding: 16px;
+}
+
+.feedback-modal.open {
+  display: flex;
+}
+
+.feedback-panel {
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--bg-light);
+  border: 1px solid var(--wood-light);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.feedback-panel h3 {
+  color: var(--accent-hover);
+  margin-bottom: 4px;
+}
+
+.feedback-sub {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  margin-bottom: 14px;
+}
+
+.feedback-panel label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin: 10px 0 4px;
+}
+
+.feedback-panel textarea,
+.feedback-panel input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--wood);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.feedback-panel textarea:focus,
+.feedback-panel input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Stacks on narrow screens; most players are on mobile or tablet. */
+.feedback-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.feedback-row > div {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.feedback-status {
+  min-height: 1.2em;
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.feedback-status.ok { color: var(--green); }
+.feedback-status.error { color: var(--danger); }
+
+.feedback-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+/* The floating button overlaps the card fan on small screens during a game, so it
+   moves to the top. That puts it under the announcement banner, which is fixed at the
+   top as well and would intercept the tap, so it drops below the banner when one is up. */
+@media (max-width: 600px) {
+  .feedback-btn {
+    bottom: auto;
+    top: 8px;
+    right: 8px;
+    padding: 5px 11px;
+    font-size: 0.7rem;
+  }
+
+  body.has-announcement .feedback-btn {
+    top: 58px;
+  }
+}

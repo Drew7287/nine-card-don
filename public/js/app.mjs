@@ -2,6 +2,7 @@
 
 import { initLobby } from './lobby-ui.mjs';
 import { initGameUI } from './game-ui.mjs';
+import { initFeedback } from './feedback-ui.mjs';
 
 const screens = ['lobby', 'room', 'game'];
 
@@ -17,4 +18,5 @@ document.addEventListener('DOMContentLoaded', () => {
   showScreen('lobby');
   initLobby();
   initGameUI();
+  initFeedback();
 });
