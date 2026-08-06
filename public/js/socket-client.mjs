@@ -20,7 +20,7 @@ socket.on('disconnect', () => {
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     if (!socket.connected) {
-      console.log('Page visible — forcing reconnect');
+      console.log('Page visible, forcing reconnect');
       socket.connect();
     }
   }
@@ -29,7 +29,7 @@ document.addEventListener('visibilitychange', () => {
 // iOS Safari back-forward cache
 window.addEventListener('pageshow', (event) => {
   if (event.persisted && !socket.connected) {
-    console.log('Page restored from bfcache — forcing reconnect');
+    console.log('Page restored from bfcache, forcing reconnect');
     socket.connect();
   }
 });

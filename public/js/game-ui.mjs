@@ -324,7 +324,7 @@ function renderTurnIndicator(state) {
     el.textContent = 'Hand complete';
     el.className = 'turn-indicator';
   } else if (state.currentPlayer === state.mySeat) {
-    el.textContent = state.pitched ? 'Your turn — play a card' : 'Your pitch — choose trump';
+    el.textContent = state.pitched ? 'Your turn, play a card' : 'Your pitch, choose trump';
     el.className = 'turn-indicator my-turn';
   } else {
     el.textContent = `${playerName(state.currentPlayer)}'s turn`;
@@ -352,7 +352,7 @@ function renderHandComplete(result) {
 
   const gameBonusLine = result.gameBonusWinner
     ? `${result.gameBonusWinner === 'NS' ? nsTeam : ewTeam} wins "game" (+${GAME_BONUS}pts)`
-    : '"Game" tied — no bonus';
+    : '"Game" tied, no bonus';
 
   function renderTrickRow(trick) {
     const cards = trick.cards.map(c => renderTrickCard(c.card, trumpSuit)).join(' ');
@@ -386,7 +386,7 @@ function renderHandComplete(result) {
     </div>
     <div class="game-bonus-line">${gameBonusLine}</div>
     <div class="running-scores">
-      ${nsTeam} ${result.scores.NS} — ${ewTeam} ${result.scores.EW}
+      ${nsTeam} ${result.scores.NS} v ${ewTeam} ${result.scores.EW}
     </div>
   `;
 
