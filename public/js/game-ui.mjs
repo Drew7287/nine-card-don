@@ -4,6 +4,7 @@ import socket, { emitAsync } from './socket-client.mjs';
 import { getCurrentRoom, getMySeat, clearSession } from './lobby-ui.mjs';
 import { suitSymbol, suitColor, cardLabel, cardId, sortHand } from './card-utils.mjs';
 import { showScreen } from './app.mjs';
+import { openFeedback, hasSentFeedback } from './feedback-ui.mjs';
 
 const GAME_BONUS = 8;
 let cachedPlayerNames = {};
@@ -394,6 +395,9 @@ function renderHandComplete(result) {
     clearSession();
     html += `<h2 class="game-winner">${result.winner === 'NS' ? nsTeam : ewTeam} wins the game!</h2>`;
     html += `<button id="new-game-btn" class="btn btn-primary">New Game</button>`;
+    if (!hasSentFeedback()) {
+      html += `<button id="endgame-feedback-btn" class="btn btn-secondary">How was that game?</button>`;
+    }
   } else {
     html += `<button id="ready-btn" class="btn btn-primary">Ready for Next Hand</button>`;
     html += `<div id="ready-status"></div>`;
@@ -402,6 +406,9 @@ function renderHandComplete(result) {
   overlay.innerHTML = html;
 
   if (result.gameOver) {
+    document.getElementById('endgame-feedback-btn')?.addEventListener('click', () => {
+      openFeedback('You just finished a game. What worked, what did not, anything broken?');
+    });
     document.getElementById('new-game-btn').addEventListener('click', async () => {
       const res = await emitAsync('restart-game', { code: getCurrentRoom() });
       if (res.error) showGameMessage(res.error);

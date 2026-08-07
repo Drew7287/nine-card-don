@@ -16,6 +16,19 @@ function currentContext() {
   ].filter(Boolean).join(' | ');
 }
 
+export const FEEDBACK_SENT_KEY = 'don-feedback-sent';
+
+export function hasSentFeedback() {
+  try { return localStorage.getItem(FEEDBACK_SENT_KEY) === '1'; } catch { return false; }
+}
+
+// Opened from the end-of-game screen as well as the corner button.
+export function openFeedback(prompt) {
+  const sub = $('feedback-sub');
+  if (sub && prompt) sub.textContent = prompt;
+  setOpen(true);
+}
+
 function setOpen(open) {
   $('feedback-modal')?.classList.toggle('open', open);
   if (open) $('feedback-message')?.focus();
@@ -51,6 +64,7 @@ async function sendFeedback() {
 
     if (res.ok) {
       status.textContent = 'Sent. Thank you.';
+      try { localStorage.setItem(FEEDBACK_SENT_KEY, '1'); } catch {}
       status.className = 'feedback-status ok';
       $('feedback-message').value = '';
       setTimeout(() => { setOpen(false); status.textContent = ''; }, 1200);
