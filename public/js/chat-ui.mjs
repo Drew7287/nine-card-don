@@ -13,8 +13,13 @@ import { getCurrentRoom } from './lobby-ui.mjs';
 const $ = (id) => document.getElementById(id);
 
 const MAX_ROWS = 60;      // trim the log so a long session cannot grow forever
+const TOAST_MS = 6000;    // long enough to read mid-hand, short enough to ignore
 let unread = 0;
 let open = false;
+let toastTimer = null;
+// Auto-open on the FIRST real message of a game only. Once, so nobody can use
+// chat to keep shoving the cards out of the way.
+let autoOpenedThisGame = false;
 
 function setOpen(next) {
   open = next;
@@ -22,6 +27,7 @@ function setOpen(next) {
   if (open) {
     unread = 0;
     renderBadge();
+    hideToast();
     $('chat-input')?.focus();
     const log = $('chat-log');
     if (log) log.scrollTop = log.scrollHeight;
@@ -33,6 +39,37 @@ function renderBadge() {
   if (!b) return;
   b.textContent = unread > 9 ? '9+' : String(unread);
   b.style.display = unread ? '' : 'none';
+}
+
+function showToast({ name, text }) {
+  const el = $('chat-toast');
+  if (!el) return;
+  el.innerHTML = '';
+  if (name) {
+    const who = document.createElement('span');
+    who.className = 'ct-who';
+    who.textContent = name + ': ';   // textContent, never innerHTML
+    el.appendChild(who);
+  }
+  const body = document.createElement('span');
+  body.textContent = text;           // textContent, never innerHTML
+  el.appendChild(body);
+
+  el.hidden = false;
+  // Next frame, so the transition runs instead of the element just appearing.
+  requestAnimationFrame(() => el.classList.add('visible'));
+
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, TOAST_MS);
+}
+
+function hideToast() {
+  const el = $('chat-toast');
+  if (!el) return;
+  clearTimeout(toastTimer);
+  el.classList.remove('visible');
+  // Wait out the fade before pulling it from the layout.
+  setTimeout(() => { if (!el.classList.contains('visible')) el.hidden = true; }, 300);
 }
 
 function addRow({ name, text, system }) {
@@ -63,6 +100,14 @@ function addRow({ name, text, system }) {
   if (!open && !system) {
     unread += 1;
     renderBadge();
+    // The badge on its own gets missed, so say it out loud. First message of
+    // a game opens the panel; after that the toast carries it.
+    if (!autoOpenedThisGame) {
+      autoOpenedThisGame = true;
+      setOpen(true);
+    } else {
+      showToast({ name, text });
+    }
   }
 }
 
@@ -89,7 +134,13 @@ export function initChat() {
     if (e.key === 'Escape') { e.preventDefault(); setOpen(false); }
   });
 
+  $('chat-toast')?.addEventListener('click', () => setOpen(true));
+
   socket.on('chat', (m) => addRow(m));
+
+  // A new game gets one auto-open again; a fresh table is a fresh chance that
+  // nobody has noticed chat exists.
+  socket.on('game-started', () => { autoOpenedThisGame = false; });
 
   // Table events worth saying out loud, so the panel is useful even in a bot game.
   socket.on('player-disconnected', ({ name }) =>

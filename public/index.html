@@ -196,6 +196,12 @@
       <!-- Game message toast -->
       <div id="game-message" class="game-message"></div>
 
+      <!-- A chat arriving while the panel is shut used to do nothing but bump a
+           badge in the corner, which people miss entirely (Drew said hi to a real
+           opponent on 8 Aug and got nothing back). This shows the message itself
+           for a few seconds, out of the card area, and opens the panel if tapped. -->
+      <button id="chat-toast" class="chat-toast" type="button" hidden></button>
+
       <!-- Table chat: collapsed by default so it never covers the cards -->
       <div id="chat-panel" class="chat-panel">
         <button id="chat-toggle" class="chat-toggle" type="button" aria-label="Table chat">

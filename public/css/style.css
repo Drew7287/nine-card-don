@@ -1731,6 +1731,38 @@ input[type="text"]:focus {
   .pub-props { display: none; }
 }
 
+/* A chat arriving while the panel is SHUT announces itself here. The badge
+   alone is missed: Drew said hi to a real opponent on 8 Aug 2026 and got
+   nothing back because they never noticed. Sits over the empty top of the
+   felt, NOT bottom-left by the chat tab: on a phone the hand runs along the
+   bottom and a toast there covers your own cards, which is the one thing the
+   chat panel was designed to avoid. Its OWN element rather than the
+   game-message toast so a chat and a game message can never overwrite each
+   other, and offset below it so both can show at once. Tap to open chat. */
+.chat-toast {
+  position: fixed;
+  top: 92px;                       /* clear of .game-message at 50px */
+  left: 50%;
+  z-index: 401;
+  max-width: min(320px, calc(100vw - 24px));
+  text-align: left;
+  background: rgba(20, 16, 16, 0.96);
+  color: var(--text);
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateX(-50%) translateY(-10px);
+  transition: opacity 0.25s, transform 0.25s;
+}
+.chat-toast[hidden] { display: none; }
+.chat-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+.chat-toast .ct-who { color: var(--gold); font-weight: 700; }
+
 /* --- Table chat (6 Aug 2026) --------------------------------------------
    Collapsed to a small tab by default: the cards are the point, chat is not.
    Sits above the felt but out of the play areas, and never over the hand. */
@@ -1849,6 +1881,8 @@ input[type="text"]:focus {
 /* Only show chat on the game screen; the lobby has its own layout. */
 #lobby-screen.active ~ .chat-panel,
 #room-screen.active ~ .chat-panel { display: none; }
+#lobby-screen.active ~ .chat-toast,
+#room-screen.active ~ .chat-toast { display: none; }
 
 @media (max-width: 600px) {
   .chat-panel.open .chat-body { width: calc(100vw - 24px); height: 220px; }
