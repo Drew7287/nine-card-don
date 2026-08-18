@@ -2,7 +2,7 @@
 
 import {
   createRoom, joinRoom, sitDown, startGame, restartGame, choosePitcher,
-  playCardInRoom, readyNextHand, handleDisconnect,
+  playCardInRoom, readyNextHand, handleDisconnect, leaveRoom,
   getRoomState, getPersonalGameState, getRoom, getPlayerNames,
   addAiToSeat, removeAiFromSeat, aiTakeoverSeat
 } from './room-manager.mjs';
@@ -281,6 +281,22 @@ export function registerHandlers(io, socket) {
       text: msg,
       at: now,
     });
+  });
+
+  // Leaving on purpose (the Home button on the end-of-game overlay). Distinct
+  // from 'disconnect': the seat frees straight away, with no rejoin window and
+  // no AI takeover.
+  socket.on('leave-room', (_, ack) => {
+    const result = leaveRoom(socket.id);
+    if (result?.room) {
+      socket.leave(result.room.code);
+      io.to(result.room.code).emit('room-state', getRoomState(result.room));
+      io.to(result.room.code).emit('player-left', {
+        seat: result.seat,
+        name: result.name,
+      });
+    }
+    ack?.({ ok: true });
   });
 
   socket.on('disconnect', () => {

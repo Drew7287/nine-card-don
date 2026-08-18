@@ -147,6 +147,8 @@ export function initChat() {
     addRow({ text: (name || 'A player') + ' lost connection', system: true }));
   socket.on('player-reconnected', ({ name }) =>
     addRow({ text: (name || 'A player') + ' is back', system: true }));
+  socket.on('player-left', ({ name }) =>
+    addRow({ text: (name || 'A player') + ' left the table', system: true }));
   socket.on('ai-takeover', ({ name, aiName }) =>
     addRow({ text: (aiName || 'A bot') + ' has taken over from ' + (name || 'a player'), system: true }));
 

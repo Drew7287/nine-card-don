@@ -356,6 +356,49 @@ export function handleDisconnect(socketId) {
   return { room, seat, name };
 }
 
+/* Deliberately leaving a room, as opposed to dropping off the network.
+
+   handleDisconnect below treats a vanished socket as someone who might come
+   back: it holds the seat for a 5-minute rejoin window and lets an AI take it
+   over after 30 seconds. Neither is right for a player who has finished a game
+   and pressed Home. They are not coming back, the seat should free immediately,
+   and putting a bot into a game that has already ended would be nonsense. */
+export function leaveRoom(socketId) {
+  const info = socketToRoom.get(socketId);
+  if (!info) return null;
+
+  const room = rooms.get(info.code);
+  if (!room) { socketToRoom.delete(socketId); return null; }
+
+  const player = room.players[socketId];
+  if (!player) { socketToRoom.delete(socketId); return null; }
+
+  const seat = player.seat;
+  const name = player.name;
+
+  delete room.players[socketId];
+  socketToRoom.delete(socketId);
+
+  if (seat) {
+    room.seats[seat] = null;
+    // If they had dropped and come back before leaving, cancel the pending
+    // rejoin and takeover timers rather than leaving them to fire on a seat
+    // nobody holds.
+    const disc = room.disconnected.get(seat);
+    if (disc) {
+      clearTimeout(disc.timeout);
+      if (disc.takeoverTimeout) clearTimeout(disc.takeoverTimeout);
+      room.disconnected.delete(seat);
+    }
+  }
+
+  if (Object.keys(room.players).length === 0 && room.disconnected.size === 0) {
+    rooms.delete(room.code);
+  }
+
+  return { room, seat, name };
+}
+
 export function getRoomState(room) {
   const seats = {};
   for (const seat of SEATS) {

@@ -60,6 +60,10 @@ export function initGameUI() {
     showGameMessage(`${name} disconnected`);
   });
 
+  socket.on('player-left', ({ name }) => {
+    showGameMessage(`${name || 'A player'} left the table`);
+  });
+
   socket.on('player-reconnected', ({ seat, name }) => {
     showGameMessage(`${name} reconnected`);
   });
@@ -395,6 +399,7 @@ function renderHandComplete(result) {
     clearSession();
     html += `<h2 class="game-winner">${result.winner === 'NS' ? nsTeam : ewTeam} wins the game!</h2>`;
     html += `<button id="new-game-btn" class="btn btn-primary">New Game</button>`;
+    html += `<button id="home-btn" class="btn btn-secondary">Home</button>`;
     if (!hasSentFeedback()) {
       html += `<button id="endgame-feedback-btn" class="btn btn-secondary">How was that game?</button>`;
     }
@@ -413,6 +418,16 @@ function renderHandComplete(result) {
       const res = await emitAsync('restart-game', { code: getCurrentRoom() });
       if (res.error) showGameMessage(res.error);
       overlay.classList.remove('visible');
+    });
+    // Home: tell the server first so the seat frees for whoever is left, then
+    // clear the table down. Wrapped because a failed emit must not strand the
+    // player on a finished game with no way out - the point of the button.
+    document.getElementById('home-btn').addEventListener('click', async () => {
+      try { await emitAsync('leave-room'); } catch { /* leaving anyway */ }
+      clearSession();
+      overlay.classList.remove('visible');
+      overlay.innerHTML = '';
+      showScreen('lobby');
     });
   } else {
     document.getElementById('ready-btn').addEventListener('click', async () => {
