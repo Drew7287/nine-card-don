@@ -40,7 +40,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/cards.css">
 </head>
-<body>
+<body class="photo-table">
   <!-- Reconnecting banner (shown when socket disconnects on mobile/network loss) -->
   <div id="reconnecting-banner" class="reconnecting-banner">Reconnecting&hellip;</div>
 
@@ -151,6 +151,10 @@
 
       <!-- Table area, the green felt -->
       <div class="table-area">
+        <!-- Photographed pub table (body.photo-table). Sized by height and
+             centred, so the players below position against a square. -->
+        <div class="table-stage">
+        <div class="table-photo" aria-hidden="true"></div>
         <!-- Pub furniture: decorative only, behind the cards, not clickable -->
         <div class="pub-props" aria-hidden="true">
           <div class="pub-drink" style="left:28%;top:16%;">
@@ -185,6 +189,7 @@
 
         <!-- Turn indicator -->
         <div id="turn-indicator" class="turn-indicator"></div>
+        </div><!-- /.table-stage -->
       </div>
 
       <!-- My hand (bottom) -->

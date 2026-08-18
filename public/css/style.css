@@ -1887,3 +1887,108 @@ input[type="text"]:focus {
 @media (max-width: 600px) {
   .chat-panel.open .chat-body { width: calc(100vw - 24px); height: 220px; }
 }
+
+/* ==========================================================================
+   PHOTO TABLE  (18 Aug 2026)
+   Drew's overhead pub-table photograph used as the board instead of the
+   CSS-drawn ellipse. Behind `body.photo-table` so the drawn table is still
+   the default and this can be switched off without touching anything else.
+
+   The photo is square and the table area is wide, so the image is sized by
+   HEIGHT and centred: `.table-photo` is an aspect-ratio:1 box that the
+   players are positioned against. Positioning the players on `.table-area`
+   instead would put them on the dark floor either side of the image at any
+   width above 1:1.
+   ========================================================================== */
+body.photo-table .table-area::before,
+body.photo-table .table-area::after { display: none; }
+
+body.photo-table .pub-props { display: none; }
+
+body.photo-table .table-area {
+  /* The floor in the photo is near-black, so the letterbox either side of
+     the square reads as more pub floor rather than as a gap. */
+  background: #0d0b09;
+}
+
+/* The square stage. Everything on the table positions against THIS, not the
+   wide .table-area, or the side players' cards land on the floor either side
+   of the photograph (seen at 1440px on the first attempt). */
+.table-stage {
+  position: absolute;
+  inset: 0;
+  display: contents;   /* drawn table: stage is inert, old positions stand */
+}
+
+body.photo-table .table-stage {
+  /* .table-area was centring .trick-area with flex; once the trick moved
+     inside the stage that centring was lost and the four cards stacked in the
+     top-left corner. The stage has to do the centring now. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* right:auto matters: the base rule sets inset:0, and a fixed left AND right
+     pins the width, which silently defeats aspect-ratio (box came out
+     1440x699 instead of square). */
+  left: 50%;
+  right: auto;
+  aspect-ratio: 1 / 1;
+  transform: translateX(-50%);
+}
+
+.table-photo {
+  position: absolute;
+  inset: 0;
+  background-image: image-set(
+    url("../img/pub-table.webp") type("image/webp"),
+    url("../img/pub-table.jpg") type("image/jpeg"));
+  background-size: cover;
+  background-position: center;
+  border-radius: 4px;
+  box-shadow: 0 10px 50px rgba(0,0,0,0.75);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body:not(.photo-table) .table-photo { display: none; }
+
+/* Players sit against the photo square, not the wide container, so the
+   percentages below are the seat positions measured off the image itself. */
+body.photo-table .player-area { z-index: 3; }
+
+/* The felt in the photo runs roughly 20%-80% across and 15%-80% down, with
+   the four drinkers at 12 / 3 / 6 / 9 o'clock. */
+body.photo-table .pos-top   { top: 19%;  left: 50%; transform: translateX(-50%); }
+body.photo-table .pos-left  { left: 21%;  top: 47%;  transform: translateY(-50%); }
+body.photo-table .pos-right { right: 21%; top: 47%;  transform: translateY(-50%); }
+
+/* Side hands are fanned vertically so five cards fit inside the felt rather
+   than running out over the drinkers' arms. */
+body.photo-table .pos-left .player-cards,
+body.photo-table .pos-right .player-cards { flex-direction: column; }
+body.photo-table .pos-left .player-cards .card,
+body.photo-table .pos-right .player-cards .card {
+  margin-left: 0;
+  margin-top: -46px;
+}
+body.photo-table .pos-left .player-cards .card:first-child,
+body.photo-table .pos-right .player-cards .card:first-child { margin-top: 0; }
+
+/* Cards on a photograph need their own separation from the busy background;
+   the drawn felt was flat enough not to. */
+body.photo-table .player-area .player-cards .card,
+body.photo-table .trick-card .card {
+  box-shadow: 0 3px 10px rgba(0,0,0,0.85), 0 0 0 1px rgba(0,0,0,0.5);
+}
+
+body.photo-table .player-area .player-name {
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(2px);
+}
+
+/* Centre the trick on the felt, which sits slightly above the middle of the
+   square because the near player takes up more of the frame. */
+body.photo-table .trick-area { margin-top: -4%; }
