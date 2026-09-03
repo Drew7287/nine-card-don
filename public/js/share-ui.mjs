@@ -31,9 +31,12 @@ function shareUrl(roomCode) {
 }
 
 function shareText(roomCode) {
+  // Most people receiving this have never heard of the site. The message has to
+  // answer "what is this and what will it cost me" before they will tap a link
+  // pasted into a group chat.
   return roomCode
-    ? `Join my game of Nine-Card Don, room ${roomCode}`
-    : 'Nine-Card Don, the Welsh trick-taking card game. Free to play online.';
+    ? `Join my game of Nine-Card Don, room ${roomCode}. Free, no sign-up, just tap the link.`
+    : 'Nine-Card Don, the Welsh trick-taking card game. Play free in your browser, no sign-up, and bots fill any empty seats.';
 }
 
 function setStatus(id, message, ok = true) {
