@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { registerHandlers } from './socket-handlers.mjs';
 import { processQueue, queueSize } from './matchmaking.mjs';
-import { snapshot, connectionOpened, connectionClosed, record } from './analytics.mjs';
+import { snapshot, connectionOpened, connectionClosed, record, notePresence } from './analytics.mjs';
 import * as notify from './notify.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -88,6 +88,10 @@ let lastPresence = '';
 
 function broadcastPresence() {
   const payload = { online: humanSockets.size, inQueue: queueSize() };
+  // Feed the concurrency measure from the same number the banner shows, so the
+  // two can never disagree. This is called on every arrival and departure, and
+  // notePresence ignores a call that does not change the count.
+  notePresence(humanSockets.size);
   const key = JSON.stringify(payload);
   if (key === lastPresence) return;   // nothing changed; do not chatter at every client
   lastPresence = key;

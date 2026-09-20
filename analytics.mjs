@@ -29,6 +29,52 @@ const bootedAt = new Date().toISOString();
 const liveGames = new Map();   // room code -> { startedAt, humans, ais, hands, quickPlay }
 let currentConnections = 0;
 
+// How often is more than one person on at the same time? (Drew, 20 Sep 2026.)
+// The event log could never answer this: it records a connect and never a
+// matching disconnect, so arrivals were known and departures were not.
+//
+// This measures presence in WALL-CLOCK TIME rather than counting events, because
+// "two people were both on" is a duration, not a moment. Every time the human
+// count changes we bank the time spent at the level we are leaving.
+//
+// HUMANS ONLY. It is fed from the same humanSockets set the presence banner
+// uses, so crawlers and our own verification runs are already excluded. Counting
+// raw connections would let a bot plus one player read as two people on.
+//
+// Live-only and deliberately not replayed from the log: a restart cannot know
+// how long anyone was on before it, and inventing that would be worse than
+// starting again. It resets on deploy like every other counter here.
+const presence = {
+  level: 0,             // humans online right now
+  since: Date.now(),    // when the level last changed
+  peak: 0,              // most humans on at once
+  msAtLevel: [],        // index = number online, value = total ms spent there
+  togetherEpisodes: 0,  // times the count ROSE to 2+, i.e. a real chance to match
+  lastTogetherAt: null,
+};
+
+function bankPresenceTime(now) {
+  const held = now - presence.since;
+  presence.msAtLevel[presence.level] = (presence.msAtLevel[presence.level] || 0) + held;
+  presence.since = now;
+}
+
+/**
+ * Called on every change to the number of humans online.
+ * @param online humanSockets.size, so bots are already out.
+ */
+export function notePresence(online) {
+  const now = Date.now();
+  if (online === presence.level) return;
+  bankPresenceTime(now);
+  if (online >= 2 && presence.level < 2) {
+    presence.togetherEpisodes += 1;
+    presence.lastTogetherAt = new Date(now).toISOString();
+  }
+  presence.level = online;
+  if (online > presence.peak) presence.peak = online;
+}
+
 // Rebuilt from the event log on boot.
 const tally = {
   connections: 0,
@@ -258,8 +304,30 @@ export function snapshot() {
       avgGameMinutes: avgMs === null ? null : Math.round(avgMs / 600) / 100,
     },
     humansPerGame: tally.humanCounts,
+    concurrency: presenceReport(),
     byCountry: tally.byCountry,
     byDay: tally.byDay,
+  };
+}
+
+// Time spent with N humans online, as minutes and as a share of uptime. Banks the
+// time held at the current level first, otherwise an ongoing stretch is missing
+// from its own report.
+function presenceReport() {
+  bankPresenceTime(Date.now());
+  const ms = presence.msAtLevel;
+  const total = ms.reduce((a, b) => a + (b || 0), 0);
+  const mins = (v) => Math.round((v || 0) / 600) / 100;
+  const twoPlusMs = ms.reduce((a, b, i) => (i >= 2 ? a + (b || 0) : a), 0);
+  return {
+    onlineNow: presence.level,
+    peakOnline: presence.peak,
+    togetherEpisodes: presence.togetherEpisodes,
+    lastTogetherAt: presence.lastTogetherAt,
+    minutesWithTwoOrMore: mins(twoPlusMs),
+    pctOfTimeWithTwoOrMore: total ? Math.round((twoPlusMs / total) * 1000) / 10 : null,
+    minutesByOnlineCount: ms.map((v) => mins(v)),
+    measuredMinutes: mins(total),
   };
 }
 
