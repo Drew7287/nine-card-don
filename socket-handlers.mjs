@@ -4,7 +4,8 @@ import {
   createRoom, joinRoom, sitDown, startGame, restartGame, choosePitcher,
   playCardInRoom, readyNextHand, handleDisconnect, leaveRoom,
   getRoomState, getPersonalGameState, getRoom, getPlayerNames,
-  addAiToSeat, removeAiFromSeat, aiTakeoverSeat
+  addAiToSeat, removeAiFromSeat, aiTakeoverSeat,
+  listOpenSeats, takeOverAiSeat
 } from './room-manager.mjs';
 import { triggerAiTurn, triggerAiPitcherChoice, triggerAiReadyNextHand, isAiSeat } from './ai-controller.mjs';
 import { AI_NAMES } from './ai-player.mjs';
@@ -55,6 +56,50 @@ export function registerHandlers(io, socket) {
         name: playerName.trim(),
       });
     }
+  });
+
+  /* ── Join a game already in progress by taking a bot's seat ──────────────
+     Drew, 20 Sep 2026. The queue needs two strangers to arrive within seconds
+     of each other and never has; this needs one person to arrive while a game
+     is running, which happens constantly. */
+
+  socket.on('list-open-games', (_payload, ack) => {
+    ack?.({ ok: true, games: listOpenSeats() });
+  });
+
+  socket.on('take-over-seat', ({ code, seat, playerName }, ack) => {
+    if (!playerName?.trim()) return ack?.({ error: 'Name required' });
+    if (!code?.trim()) return ack?.({ error: 'Which game?' });
+
+    const result = takeOverAiSeat(code.trim().toUpperCase(), socket.id,
+                                  playerName.trim(), seat);
+    if (result.error) {
+      // Same reasoning as join-room: a refusal nobody can see is a refusal
+      // nobody can explain later.
+      stats.record('join_failed', { code: code.trim().toUpperCase(), reason: result.error });
+      return ack?.({ error: result.error });
+    }
+
+    socket.join(result.room.code);
+    ack?.({ ok: true, code: result.room.code, seat: result.seat });
+
+    io.to(result.room.code).emit('room-state', getRoomState(result.room));
+    io.to(result.room.code).emit('player-joined-live', {
+      seat: result.seat,
+      name: playerName.trim(),
+      replaced: result.replaced,
+    });
+
+    // The joiner needs their cards immediately; everyone else needs the seat to
+    // stop saying Bot. broadcastGameState covers the whole table including them.
+    broadcastGameState(io, result.room);
+
+    // The seat may be mid-turn. It was the AI's turn a moment ago and the AI
+    // timer is now gone, so without this the table would sit waiting on a
+    // player who does not know it is their go. Their own game-state above
+    // carries the turn, so nothing else is needed; this is only the nudge for
+    // the case where the seat was NOT on turn and an AI elsewhere still is.
+    triggerAiTurn(io, result.room);
   });
 
   socket.on('sit-down', ({ code, seat }, ack) => {

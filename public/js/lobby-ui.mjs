@@ -43,6 +43,8 @@ export function initLobby() {
   const startWithAiBtn = document.getElementById('start-with-ai-btn');
   const cancelQueueBtn = document.getElementById('cancel-queue-btn');
 
+  startLiveGamesRefresh();
+
   // Restore player name from previous session
   const savedSession = loadSession();
   if (savedSession?.playerName) {
@@ -313,4 +315,116 @@ function showError(msg) {
   el.textContent = msg;
   el.style.display = 'block';
   setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+
+/* ── Games in progress you can drop into (Drew, 20 Sep 2026) ────────────────
+   The queue asks two strangers to arrive within seconds of each other and in
+   two measured windows it never once happened. This asks for something far
+   likelier: that one person turns up while a game is already running.
+
+   Polled rather than pushed, because the list only matters while somebody is
+   sitting on the lobby looking at it, and a poll cannot leak a stale
+   subscription into a game screen. */
+
+const LIVE_GAMES_MS = 8000;
+let liveGamesTimer = null;
+
+function startLiveGamesRefresh() {
+  if (liveGamesTimer) return;
+  refreshLiveGames();
+  liveGamesTimer = setInterval(() => {
+    // Only while the lobby is actually on screen. Polling behind a game wastes
+    // a round trip every 8 seconds and can only ever render into a hidden div.
+    if (document.getElementById('lobby-screen')?.classList.contains('active')) {
+      refreshLiveGames();
+    }
+  }, LIVE_GAMES_MS);
+}
+
+async function refreshLiveGames() {
+  let res;
+  try {
+    res = await emitAsync('list-open-games', {});
+  } catch {
+    return;   // a failed poll is not worth an error banner; the next one retries
+  }
+  renderLiveGames(res?.games || []);
+}
+
+function renderLiveGames(games) {
+  const wrap = document.getElementById('live-games');
+  const list = document.getElementById('live-games-list');
+  if (!wrap || !list) return;
+
+  if (!games.length) {
+    wrap.style.display = 'none';
+    list.innerHTML = '';
+    return;
+  }
+
+  list.innerHTML = '';
+  for (const g of games) {
+    const seats = g.openSeats || [];
+    if (!seats.length) continue;
+
+    const row = document.createElement('div');
+    row.className = 'live-game';
+
+    const main = document.createElement('div');
+    main.className = 'lg-main';
+
+    const title = document.createElement('div');
+    title.className = 'lg-title';
+    const people = g.humansPresent === 1 ? '1 player' : `${g.humansPresent} players`;
+    title.textContent = `Table ${g.code} — ${people}`;
+
+    const sub = document.createElement('div');
+    sub.className = 'lg-sub';
+    const ns = g.scores?.NS ?? 0;
+    const ew = g.scores?.EW ?? 0;
+    const seatWord = seats.length === 1 ? 'seat' : 'seats';
+    // Say the score and whose seat it is up front. Taking over a bot means
+    // inheriting its hand and its score, and finding that out afterwards would
+    // feel like a trick.
+    sub.textContent = `${seats.length} bot ${seatWord} open · score ${ns}-${ew} · `
+                    + `you would take over from ${seats[0].name}`;
+
+    main.appendChild(title);
+    main.appendChild(sub);
+
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-secondary';
+    btn.textContent = 'Sit in';
+    btn.addEventListener('click', () => takeSeat(g.code, seats[0].seat, btn));
+
+    row.appendChild(main);
+    row.appendChild(btn);
+    list.appendChild(row);
+  }
+
+  wrap.style.display = list.children.length ? 'block' : 'none';
+}
+
+async function takeSeat(code, seat, btn) {
+  const name = document.getElementById('player-name').value.trim();
+  if (!name) return showError('Enter your name');
+
+  // The listing can be up to 8 seconds stale, so the seat may already be gone.
+  // Disable the button for the round trip rather than let it be pressed twice.
+  btn.disabled = true;
+  const res = await emitAsync('take-over-seat', { code, seat, playerName: name });
+  btn.disabled = false;
+
+  if (res?.error) {
+    showError(res.error);
+    refreshLiveGames();     // whatever changed, show them the truth now
+    return;
+  }
+
+  currentRoom = res.code;
+  mySeat = res.seat;
+  saveSession(res.code, name);
+  // No showScreen here: the server sends game-state straight after, and
+  // game-ui switches to the game screen on that, the same as a rejoin.
 }

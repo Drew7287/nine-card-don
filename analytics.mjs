@@ -95,6 +95,7 @@ const tally = {
   byCountry: {},           // two-letter country code -> connections
   botConnections: 0,       // headless browsers, crawlers, our own verification runs
   feedback: 0,
+  seatTakeovers: 0,
 };
 
 function day(iso) {
@@ -156,6 +157,11 @@ function apply(e) {
       break;
     case 'disconnect_midgame':
       tally.midGameDisconnects += 1;
+      break;
+    // Somebody joined a game already running by taking a bot's seat. This is the
+    // number that says whether the takeover route does what the queue never did.
+    case 'seat_takeover':
+      tally.seatTakeovers += 1;
       break;
   }
 }
@@ -296,6 +302,7 @@ export function snapshot() {
       aiTakeovers: tally.aiTakeovers,
       midGameDisconnects: tally.midGameDisconnects,
       feedback: tally.feedback,
+      seatTakeovers: tally.seatTakeovers,
     },
     rates: {
       completionPct: pct(tally.gamesCompleted, tally.gamesStarted),

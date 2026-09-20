@@ -466,6 +466,98 @@ export function aiTakeoverSeat(room, seat, originalName) {
   return true;
 }
 
+/* ── Joining a game that is already running (Drew, 20 Sep 2026) ──────────────
+
+   The queue has never once matched two humans: 349 joins across two measured
+   windows, every one of them filled with bots. It asks two strangers to arrive
+   within seconds of each other, which at this traffic almost never happens.
+
+   Taking over a bot's seat asks for something far likelier: that ONE person
+   turns up while a game is already running. Games run with bots in them nearly
+   all the time, so the seats are there.
+
+   This is not new machinery. joinRoom's rejoin branch already swaps a seat from
+   AI back to a human mid-game, because the engine keys everything on the SEAT,
+   never on the socket. All that is new here is letting a DIFFERENT person do it.
+
+   Deliberately immediate rather than waiting for a hand boundary. A hand is
+   about a minute, and someone who has just asked to join will not wait staring
+   at a spinner; the rejoin path has always handed over mid-hand and it works.
+   The joiner is shown the score and hand number first so it is not a surprise.
+*/
+
+/** Seats a newcomer could take right now, newest game first. */
+export function listOpenSeats() {
+  const out = [];
+  for (const room of rooms.values()) {
+    if (!room.started || !room.gameState) continue;
+    if (room.gameState.gameOver) continue;          // nothing to join
+
+    const seats = [];
+    for (const seat of room.aiSeats) {
+      // A seat held for a disconnected player is THEIRS for the rejoin window.
+      // Handing it to a stranger would take someone's game off them.
+      if (room.disconnected.has(seat)) continue;
+      seats.push({ seat, name: room.aiPlayers[seat]?.name || 'Bot' });
+    }
+    if (!seats.length) continue;
+
+    // A table everybody has left is just three bots playing on until the room
+    // is cleaned up. Joining it is strictly worse than Quick Play, which deals
+    // a fresh hand instead of an inherited score, and the row read "0 players",
+    // which is not an invitation. Found by looking at the rendered lobby.
+    if (!Object.keys(room.players).length) continue;
+
+    out.push({
+      code: room.code,
+      openSeats: seats,
+      humansPresent: Object.keys(room.players).length,
+      scores: { ...room.gameState.scores },
+      startedAt: room.gameState.startedAt || null,
+    });
+  }
+  return out;
+}
+
+/**
+ * Put a person into a seat an AI is playing, in a game already under way.
+ *
+ * Every check is re-run here rather than trusted from the listing, because the
+ * list the joiner saw can be seconds stale: the game can end, the original
+ * player can rejoin, or somebody else can take the same seat first.
+ */
+export function takeOverAiSeat(code, socketId, playerName, seat) {
+  const room = rooms.get(code?.toUpperCase());
+  if (!room) return { error: 'That game has finished' };
+  if (!room.started || !room.gameState) return { error: 'That game has not started' };
+  if (room.gameState.gameOver) return { error: 'That game has just finished' };
+  if (room.players[socketId]) return { error: 'You are already in this game' };
+  if (!SEATS.includes(seat)) return { error: 'Invalid seat' };
+  if (!room.aiSeats.has(seat)) return { error: 'Somebody just took that seat' };
+  if (room.disconnected.has(seat)) return { error: 'That seat is being held for its player' };
+
+  // A duplicate name would make the rejoin-by-name branch ambiguous later, and
+  // two identical names at one table is confusing anyway.
+  const taken = Object.values(room.players).map((p) => p.name.toLowerCase());
+  for (const s of room.aiSeats) {
+    if (s !== seat) taken.push((room.aiPlayers[s]?.name || '').toLowerCase());
+  }
+  if (taken.includes(playerName.toLowerCase())) {
+    return { error: 'Somebody at that table already has your name, pick another' };
+  }
+
+  const botName = room.aiPlayers[seat]?.name || 'Bot';
+  room.aiSeats.delete(seat);
+  delete room.aiPlayers[seat];
+  room.seats[seat] = socketId;
+  room.players[socketId] = { name: playerName, seat };
+  socketToRoom.set(socketId, { code: room.code, seat });
+
+  stats.record('seat_takeover', { code: room.code, seat });
+  notify.visit?.({ country: null, ua: `seat takeover: ${playerName} replaced ${botName}` });
+  return { ok: true, room, seat, replaced: botName };
+}
+
 /**
  * Build player names map including AI (used for cut ceremony display).
  */

@@ -68,6 +68,14 @@ export function initGameUI() {
     showGameMessage(`${name} reconnected`);
   });
 
+  // A real person has dropped into a bot's seat mid-game. Worth announcing:
+  // the table has been playing against that bot and the game just changed.
+  socket.on('player-joined-live', ({ name, replaced }) => {
+    showGameMessage(replaced
+      ? `${name} has taken over from ${replaced}`
+      : `${name} has joined the game`);
+  });
+
   socket.on('ai-takeover', ({ seat, name, aiName }) => {
     showGameMessage(`${aiName} is playing for ${name}`);
   });

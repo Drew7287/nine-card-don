@@ -1992,3 +1992,20 @@ body.photo-table .player-area .player-name {
 /* Centre the trick on the felt, which sits slightly above the middle of the
    square because the near player takes up more of the frame. */
 body.photo-table .trick-area { margin-top: -4%; }
+
+
+/* Games in progress you can drop into (Drew, 20 Sep 2026). Styled as rows
+   rather than another big button so it reads as a list of real tables, and so
+   it does not compete with Quick Play for the eye. */
+.live-games { margin: 4px 0 0; }
+.live-game {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; margin-bottom: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  text-align: left;
+}
+.live-game .lg-main { flex: 1; min-width: 0; }
+.live-game .lg-title { font-weight: 600; }
+.live-game .lg-sub { font-size: 0.85em; opacity: 0.75; margin-top: 2px; }
+.live-game .btn { flex: 0 0 auto; padding: 8px 16px; }

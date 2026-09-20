@@ -72,6 +72,14 @@
         <button id="quick-play-btn" class="btn btn-primary btn-large">Quick Play</button>
         <p class="path-desc">Find a game now, AI fills empty seats</p>
 
+        <!-- Games already running that you can drop into by taking a bot's seat.
+             Hidden entirely when there are none, so the lobby does not grow an
+             empty box on a quiet day. -->
+        <div id="live-games" class="live-games" style="display:none">
+          <div class="divider">or join a game in progress</div>
+          <div id="live-games-list"></div>
+        </div>
+
         <div class="divider">or</div>
 
         <button id="create-btn" class="btn btn-secondary">Create Private Room</button>
